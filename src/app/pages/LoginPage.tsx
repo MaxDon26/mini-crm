@@ -1,0 +1,23 @@
+import { Center, Paper, Stack, Title } from '@mantine/core';
+import { Navigate } from 'react-router';
+import { LoginForm } from '@/features/auth';
+import { useCurrentUser } from '@/shared/currentUser';
+import { CurrentUserPending } from '../guards';
+
+export function LoginPage() {
+  const current = useCurrentUser();
+  if (current.status === 'ready' || current.status === 'no_profile') {
+    return <Navigate to="/" replace />;
+  }
+
+  return (
+    <Center mih="100vh" p="md">
+      <Paper withBorder p="lg" w={380} maw="100%">
+        <Stack>
+          <Title order={2}>Вход</Title>
+          {current.status === 'loading' ? <CurrentUserPending state={current} /> : <LoginForm />}
+        </Stack>
+      </Paper>
+    </Center>
+  );
+}
