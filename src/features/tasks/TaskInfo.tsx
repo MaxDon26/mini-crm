@@ -1,42 +1,38 @@
-import { Anchor, Group, Stack, Text, Title } from '@mantine/core';
-import type { ReactNode } from 'react';
+import { Stack, Title } from '@mantine/core';
 import { Link } from 'react-router';
 import { formatFullDateTime } from './formatDate';
+import classes from './task.module.css';
 import { formatPersonName, UNKNOWN_NAME } from './taskRules';
 import { TaskStatusBadge } from './TaskStatusBadge';
 import type { TaskDetails } from './types';
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <Group gap="xs" wrap="nowrap" align="flex-start">
-      <Text c="dimmed" w={130} style={{ flexShrink: 0 }}>
-        {label}
-      </Text>
-      <Text component="div" style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
-        {children}
-      </Text>
-    </Group>
-  );
-}
-
 export function TaskInfo({ task }: { task: TaskDetails }) {
   return (
-    <Stack gap="xs">
-      <Group gap="sm" align="center">
-        <Title order={2} style={{ wordBreak: 'break-word' }}>
+    <Stack gap="lg">
+      <div className={classes.header}>
+        <Title order={2} className={classes.title}>
           {task.title}
         </Title>
         <TaskStatusBadge status={task.status} />
-      </Group>
-      <Field label="Описание">{task.description ?? 'Нет описания'}</Field>
-      <Field label="Объект">
-        <Anchor component={Link} to={`/objects/${task.objectId}`}>
-          {task.objectName ?? UNKNOWN_NAME}
-        </Anchor>
-      </Field>
-      <Field label="Исполнитель">{formatPersonName(task.assigneeId, task.assigneeName)}</Field>
-      <Field label="Автор">{task.authorName ?? UNKNOWN_NAME}</Field>
-      <Field label="Создана">{formatFullDateTime(task.createdAt)}</Field>
+      </div>
+      <dl className={classes.fields}>
+        <dt>Объект</dt>
+        <dd>
+          <Link to={`/objects/${task.objectId}`} className={classes.link}>
+            {task.objectName ?? UNKNOWN_NAME}
+          </Link>
+        </dd>
+        <dt>Исполнитель</dt>
+        <dd>{formatPersonName(task.assigneeId, task.assigneeName)}</dd>
+        <dt>Автор</dt>
+        <dd>{task.authorName ?? UNKNOWN_NAME}</dd>
+        <dt>Создана</dt>
+        <dd>{formatFullDateTime(task.createdAt)}</dd>
+      </dl>
+      <div>
+        <div className={classes.descriptionLabel}>Описание</div>
+        <p className={classes.description}>{task.description ?? 'Нет описания'}</p>
+      </div>
     </Stack>
   );
 }

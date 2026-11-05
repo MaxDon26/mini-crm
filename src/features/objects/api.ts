@@ -6,7 +6,15 @@ type ObjectRow = Database['public']['Tables']['objects']['Row'];
 
 export type ObjectItem = Pick<ObjectRow, 'id' | 'name' | 'address' | 'created_at'>;
 export type ObjectFields = Pick<ObjectRow, 'name' | 'address'>;
-export type ObjectListItem = ObjectItem & { inReviewCount?: number };
+type TaskStatus = Database['public']['Enums']['task_status'];
+
+/** Число задач объекта в каждом статусе: из него рисуется полоса хода работ (раздел 3.9). */
+export type TaskStatusCounts = Partial<Record<TaskStatus, number>>;
+
+export type ObjectListItem = ObjectItem & {
+  inReviewCount?: number;
+  statusCounts?: TaskStatusCounts;
+};
 
 const OBJECT_COLUMNS = 'id, name, address, created_at';
 
@@ -17,25 +25,27 @@ export function fetchObjects(): Promise<ObjectItem[]> {
   );
 }
 
-async function fetchInReviewCounts(): Promise<Map<string, number>> {
-  const rows = await fetchAllRows<{ object_id: string }>((from, to) =>
-    supabase
-      .from('tasks')
-      .select('object_id')
-      .eq('status', 'in_review')
-      .order('id')
-      .range(from, to),
+async function fetchStatusCounts(): Promise<Map<string, TaskStatusCounts>> {
+  // Одно чтение на все объекты вместо запроса на каждый. Исполнителю правила доступа отдают только
+  // его задачи, поэтому его полоса показывает его работу.
+  const rows = await fetchAllRows<{ object_id: string; status: TaskStatus }>((from, to) =>
+    supabase.from('tasks').select('object_id, status').order('id').range(from, to),
   );
-  const counts = new Map<string, number>();
-  for (const { object_id: objectId } of rows) {
-    counts.set(objectId, (counts.get(objectId) ?? 0) + 1);
+  const counts = new Map<string, TaskStatusCounts>();
+  for (const { object_id: objectId, status } of rows) {
+    const objectCounts = counts.get(objectId) ?? {};
+    objectCounts[status] = (objectCounts[status] ?? 0) + 1;
+    counts.set(objectId, objectCounts);
   }
   return counts;
 }
 
-export async function fetchObjectsWithInReviewCount(): Promise<ObjectListItem[]> {
-  const [objects, counts] = await Promise.all([fetchObjects(), fetchInReviewCounts()]);
-  return objects.map((object) => ({ ...object, inReviewCount: counts.get(object.id) ?? 0 }));
+export async function fetchObjectsWithTaskCounts(): Promise<ObjectListItem[]> {
+  const [objects, counts] = await Promise.all([fetchObjects(), fetchStatusCounts()]);
+  return objects.map((object) => {
+    const statusCounts = counts.get(object.id) ?? {};
+    return { ...object, statusCounts, inReviewCount: statusCounts.in_review ?? 0 };
+  });
 }
 
 export async function fetchObject(objectId: string): Promise<ObjectItem | null> {

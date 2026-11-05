@@ -8,26 +8,29 @@ import {
   createObject,
   fetchObject,
   fetchObjects,
-  fetchObjectsWithInReviewCount,
+  fetchObjectsWithTaskCounts,
   updateObject,
 } from './api';
 import type { ObjectFields, ObjectListItem } from './api';
 
 // Ключи под `objects.list` и `objects.all`: их сбрасывают и действия над задачами, а список с
-// числом задач на проверке не должен делить кэш с простым списком: у них разные данные.
-const LIST_WITH_IN_REVIEW_KEY = [...queryKeys.objects.list(), 'withInReviewCount'];
+// числом задач по статусам не должен делить кэш с простым списком: у них разные данные.
+const LIST_WITH_TASK_COUNTS_KEY = [...queryKeys.objects.list(), 'withTaskCounts'];
 const taskCountKey = (objectId: string) => [...queryKeys.objects.all, 'taskCount', objectId];
 
 type UseObjectsOptions = {
-  /** Добавляет `inReviewCount`. Только для постановщика: исполнителю этот запрос не нужен (Р22). */
-  withInReviewCount?: boolean;
+  /**
+   * Добавляет `statusCounts` для полосы хода работ и `inReviewCount` для столбца постановщика (Р22).
+   * Форме задачи числа не нужны, поэтому без флага читается только список.
+   */
+  withTaskCounts?: boolean;
   enabled?: boolean;
 };
 
-export function useObjects({ withInReviewCount = false, enabled = true }: UseObjectsOptions = {}) {
+export function useObjects({ withTaskCounts = false, enabled = true }: UseObjectsOptions = {}) {
   return useQuery<ObjectListItem[]>({
-    queryKey: withInReviewCount ? LIST_WITH_IN_REVIEW_KEY : queryKeys.objects.list(),
-    queryFn: withInReviewCount ? fetchObjectsWithInReviewCount : fetchObjects,
+    queryKey: withTaskCounts ? LIST_WITH_TASK_COUNTS_KEY : queryKeys.objects.list(),
+    queryFn: withTaskCounts ? fetchObjectsWithTaskCounts : fetchObjects,
     enabled,
   });
 }

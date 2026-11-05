@@ -1,4 +1,4 @@
-import { Button, Group, Stack, Title } from '@mantine/core';
+import { Button, Stack, Title } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useNavigate, useParams } from 'react-router';
 import {
@@ -9,10 +9,17 @@ import {
   useObjects,
 } from '@/features/objects';
 import type { ObjectItem } from '@/features/objects';
-import { TaskFormModal, TaskList, useObjectTasks } from '@/features/tasks';
+import {
+  countTasksByStatus,
+  TaskFormModal,
+  TaskList,
+  TaskProgressSummary,
+  useObjectTasks,
+} from '@/features/tasks';
 import { useReadyUser } from '@/shared/currentUser';
 import { REFUSAL_MESSAGES } from '@/shared/dbErrors';
 import { CardSkeleton, ListSkeleton, QueryBoundary } from '@/shared/ui';
+import classes from './pages.module.css';
 
 function ObjectTasks({ objectId }: { objectId: string }) {
   const tasks = useObjectTasks(objectId);
@@ -21,6 +28,16 @@ function ObjectTasks({ objectId }: { objectId: string }) {
       {(data) => <TaskList tasks={data} />}
     </QueryBoundary>
   );
+}
+
+/**
+ * Полоса под адресом объекта. Тот же запрос, что у списка задач ниже: TanStack Query читает его один
+ * раз, а пока он идёт или не удался, полосы просто нет — состояние показывает список.
+ */
+function ObjectProgress({ objectId }: { objectId: string }) {
+  const tasks = useObjectTasks(objectId);
+  if (!tasks.data?.length) return null;
+  return <TaskProgressSummary counts={countTasksByStatus(tasks.data)} />;
 }
 
 function CreateTaskButton({ objectId }: { objectId: string }) {
@@ -44,7 +61,7 @@ function ObjectControls({ object }: { object: ObjectItem }) {
       <Button variant="default" onClick={form.open}>
         Изменить
       </Button>
-      <Button variant="default" color="red" onClick={() => deletion.request(object)}>
+      <Button variant="default" onClick={() => deletion.request(object)}>
         Удалить
       </Button>
       <ObjectFormModal opened={formOpened} object={object} onClose={form.close} />
@@ -57,13 +74,16 @@ function ObjectCard({ object }: { object: ObjectItem }) {
   const { role } = useReadyUser();
   const isManager = role === 'manager';
   return (
-    <Stack gap="lg">
-      <ObjectInfo object={object} actions={isManager && <ObjectControls object={object} />} />
-      <Stack>
-        <Group justify="space-between">
+    <Stack gap="xl">
+      <Stack gap="lg">
+        <ObjectInfo object={object} actions={isManager && <ObjectControls object={object} />} />
+        <ObjectProgress objectId={object.id} />
+      </Stack>
+      <Stack gap="md">
+        <div className={classes.pageHeader}>
           <Title order={3}>Задачи</Title>
           {isManager && <CreateTaskButton objectId={object.id} />}
-        </Group>
+        </div>
         <ObjectTasks objectId={object.id} />
       </Stack>
     </Stack>

@@ -1,0 +1,68 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xs);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 2fr repeat(var(--skeleton-columns), minmax(0, 1fr));
+  gap: var(--mantine-spacing-lg);
+  align-items: center;
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  background: var(--app-surface);
+  border: 1px solid var(--app-line);
+  border-radius: var(--mantine-radius-lg);
+}
+
+.lines {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card {
+  display: grid;
+  gap: var(--mantine-spacing-lg);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-sm);
+  padding: var(--mantine-spacing-lg);
+  background: var(--app-surface);
+  border: 1px solid var(--app-line);
+  border-radius: var(--mantine-radius-lg);
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-lg);
+}
+
+.entry {
+  display: grid;
+  grid-template-columns: 12px 1fr;
+  gap: var(--mantine-spacing-sm);
+}
+
+@media (min-width: 62em) {
+  .withAside {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    align-items: start;
+  }
+}
+
+/* Карточки вместо строк: на телефоне раскладка списков такая же (раздел 3.9). */
+@media (max-width: 47.99em) {
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--mantine-spacing-sm);
+  }
+
+  .panel {
+    padding: var(--mantine-spacing-md);
+  }
+}

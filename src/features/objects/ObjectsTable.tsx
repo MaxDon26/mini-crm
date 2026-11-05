@@ -1,91 +1,133 @@
-import { Anchor, Badge, Button, Group, Table, Text } from '@mantine/core';
+import { Button, Group } from '@mantine/core';
+import type { ReactNode } from 'react';
 import { Link } from 'react-router';
+import { useIsPhone } from '@/shared/ui';
 import type { ObjectItem, ObjectListItem } from './api';
+import classes from './objects.module.css';
 
 type ObjectsTableProps = {
   objects: ObjectListItem[];
   /** Столбец «На проверке» только для постановщика (Р22). */
   showInReview?: boolean;
+  /** Полоса хода работ: её рисует раздел задач, а экран передаёт сюда (Р16). */
+  renderProgress?: (object: ObjectListItem) => ReactNode;
   /** Без обработчиков столбца действий нет: исполнителю кнопки не показываются. */
   onEdit?: (object: ObjectItem) => void;
   onDelete?: (object: ObjectItem) => void;
 };
 
-const LONG_TEXT_STYLE = { overflowWrap: 'anywhere' } as const;
-
 function InReviewCount({ count }: { count: number }) {
-  if (count === 0) return <Text c="dimmed">0</Text>;
+  return <span className={count === 0 ? classes.zero : classes.inReview}>{count}</span>;
+}
+
+function ObjectName({ object }: { object: ObjectItem }) {
   return (
-    <Badge color="yellow" variant="light">
-      {count}
-    </Badge>
+    <>
+      <Link to={`/objects/${object.id}`} className={classes.name}>
+        {object.name}
+      </Link>
+      <div className={classes.address}>{object.address}</div>
+    </>
   );
 }
 
-export function ObjectsTable({
+type ObjectActionsProps = Pick<ObjectsTableProps, 'onEdit' | 'onDelete'> & { object: ObjectItem };
+
+function ObjectActions({ object, onEdit, onDelete }: ObjectActionsProps) {
+  return (
+    <Group gap="xs" wrap="nowrap">
+      {onEdit && (
+        <Button
+          size="xs"
+          variant="default"
+          aria-label={`Изменить объект ${object.name}`}
+          onClick={() => onEdit(object)}
+        >
+          Изменить
+        </Button>
+      )}
+      {onDelete && (
+        <Button
+          size="xs"
+          variant="default"
+          aria-label={`Удалить объект ${object.name}`}
+          onClick={() => onDelete(object)}
+        >
+          Удалить
+        </Button>
+      )}
+    </Group>
+  );
+}
+
+function ObjectCards({
   objects,
-  showInReview = false,
+  showInReview,
+  renderProgress,
   onEdit,
   onDelete,
 }: ObjectsTableProps) {
   const hasActions = Boolean(onEdit || onDelete);
-
   return (
-    <Table.ScrollContainer minWidth={600}>
-      <Table>
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>Название</Table.Th>
-            <Table.Th>Адрес</Table.Th>
-            {showInReview && <Table.Th>На проверке</Table.Th>}
-            {hasActions && <Table.Th>Действия</Table.Th>}
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {objects.map((object) => (
-            <Table.Tr key={object.id}>
-              <Table.Td style={LONG_TEXT_STYLE}>
-                <Anchor component={Link} to={`/objects/${object.id}`}>
-                  {object.name}
-                </Anchor>
-              </Table.Td>
-              <Table.Td style={LONG_TEXT_STYLE}>{object.address}</Table.Td>
+    <ul className={classes.cards}>
+      {objects.map((object) => (
+        <li key={object.id} className={classes.card}>
+          <div>
+            <ObjectName object={object} />
+          </div>
+          {renderProgress?.(object)}
+          {(showInReview || hasActions) && (
+            <div className={classes.cardFooter}>
               {showInReview && (
-                <Table.Td>
-                  <InReviewCount count={object.inReviewCount ?? 0} />
-                </Table.Td>
+                <span>
+                  На проверке: <InReviewCount count={object.inReviewCount ?? 0} />
+                </span>
               )}
-              {hasActions && (
-                <Table.Td>
-                  <Group gap="xs" wrap="nowrap">
-                    {onEdit && (
-                      <Button
-                        size="xs"
-                        variant="default"
-                        aria-label={`Изменить объект ${object.name}`}
-                        onClick={() => onEdit(object)}
-                      >
-                        Изменить
-                      </Button>
-                    )}
-                    {onDelete && (
-                      <Button
-                        size="xs"
-                        variant="light"
-                        color="red"
-                        aria-label={`Удалить объект ${object.name}`}
-                        onClick={() => onDelete(object)}
-                      >
-                        Удалить
-                      </Button>
-                    )}
-                  </Group>
-                </Table.Td>
-              )}
-            </Table.Tr>
-          ))}
-        </Table.Tbody>
-      </Table>
-    </Table.ScrollContainer>
+              {hasActions && <ObjectActions object={object} onEdit={onEdit} onDelete={onDelete} />}
+            </div>
+          )}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export function ObjectsTable(props: ObjectsTableProps) {
+  const { objects, showInReview = false, renderProgress, onEdit, onDelete } = props;
+  const isPhone = useIsPhone();
+  if (isPhone) return <ObjectCards {...props} showInReview={showInReview} />;
+
+  const hasActions = Boolean(onEdit || onDelete);
+  return (
+    <table className={classes.table}>
+      <thead>
+        <tr>
+          <th>Название</th>
+          {renderProgress && <th className={classes.progressColumn}>Ход работ</th>}
+          {showInReview && <th className={classes.fitColumn}>На проверке</th>}
+          {hasActions && <th className={classes.fitColumn}>Действия</th>}
+        </tr>
+      </thead>
+      <tbody>
+        {objects.map((object) => (
+          <tr key={object.id}>
+            <td className={classes.nameCell}>
+              <ObjectName object={object} />
+            </td>
+            {renderProgress && <td>{renderProgress(object)}</td>}
+            {showInReview && (
+              <td className={classes.narrow}>
+                <InReviewCount count={object.inReviewCount ?? 0} />
+              </td>
+            )}
+            {hasActions && (
+              <td className={classes.narrow}>
+                <ObjectActions object={object} onEdit={onEdit} onDelete={onDelete} />
+              </td>
+            )}
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }

@@ -1,0 +1,58 @@
+.pageHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-sm);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-lg);
+  padding: var(--mantine-spacing-lg);
+  background: var(--app-surface);
+  border: 1px solid var(--app-line);
+  border-radius: var(--mantine-radius-lg);
+  min-width: 0;
+}
+
+.section:empty {
+  display: none;
+}
+
+.section + .section {
+  padding-top: var(--mantine-spacing-lg);
+  border-top: 1px solid var(--app-line);
+}
+
+/* Карточка задачи: на компьютере данные и действия слева, история справа (раздел 3.9). */
+.taskLayout {
+  display: grid;
+  gap: var(--mantine-spacing-xl);
+}
+
+.aside {
+  min-width: 0;
+}
+
+@media (min-width: 62em) {
+  .taskLayout {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    align-items: start;
+  }
+
+  .aside {
+    padding-top: var(--mantine-spacing-xs);
+  }
+}
+
+@media (max-width: 47.99em) {
+  .panel {
+    padding: var(--mantine-spacing-md);
+  }
+
+  .taskLayout {
+    gap: var(--mantine-spacing-lg);
+  }
+}

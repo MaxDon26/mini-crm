@@ -1,8 +1,8 @@
-import { Container } from '@mantine/core';
 import { Navigate, Outlet } from 'react-router';
 import { useCurrentUser, useReadyUser } from '@/shared/currentUser';
 import type { CurrentUserState, Role } from '@/shared/currentUser';
 import { CardSkeleton, ErrorState } from '@/shared/ui';
+import classes from './layout.module.css';
 import { NoAccessPage } from './pages/NoAccessPage';
 
 // Проверки маршрутов только подсказывают, куда идти: настоящую защиту делает база (ТЗ п. 3.1).
@@ -26,9 +26,9 @@ export function RequireProfile() {
   switch (current.status) {
     case 'loading':
       return (
-        <Container size="lg" py="md">
+        <div className={`${classes.content} ${classes.main}`}>
           <CurrentUserPending state={current} />
-        </Container>
+        </div>
       );
     case 'anonymous':
       return <Navigate to="/login" replace />;

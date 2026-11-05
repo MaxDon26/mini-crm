@@ -1,0 +1,146 @@
+/* Строки таблицы — отдельные полосы на белом: таблица остаётся таблицей для чтения с экрана. */
+.table {
+  width: 100%;
+  /* Ширины столбцов заданы заголовками: так длинное название не сжимает соседние столбцы. */
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0 6px;
+  margin-block: -6px;
+}
+
+.table th {
+  padding: 0 var(--mantine-spacing-md) 2px;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 500;
+  color: var(--app-text-muted);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  background: var(--app-surface);
+  border-block: 1px solid var(--app-line);
+  vertical-align: middle;
+}
+
+.table td:first-child {
+  border-left: 1px solid var(--app-line);
+  border-radius: var(--mantine-radius-lg) 0 0 var(--mantine-radius-lg);
+}
+
+.table td:last-child {
+  border-right: 1px solid var(--app-line);
+  border-radius: 0 var(--mantine-radius-lg) var(--mantine-radius-lg) 0;
+}
+
+.table tr:hover td {
+  background: #fafbfc;
+}
+
+/* Кромка цвета статуса у «Моих задач» (раздел 3.9). */
+.edge td:first-child {
+  border-left: 4px solid var(--status);
+}
+
+.titleCell {
+  overflow-wrap: anywhere;
+}
+
+.statusColumn {
+  width: 170px;
+}
+
+.personColumn {
+  width: 200px;
+}
+
+.objectColumn {
+  width: 30%;
+}
+
+.titleLine {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.narrow {
+  white-space: nowrap;
+}
+
+.wrapCell {
+  overflow-wrap: anywhere;
+  color: var(--app-text-muted);
+}
+
+.link {
+  color: var(--app-text);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--app-text);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  background: var(--app-surface);
+  border: 1px solid var(--app-line);
+  border-radius: var(--mantine-radius-lg);
+  overflow-wrap: anywhere;
+}
+
+.card.edge {
+  border-left: 4px solid var(--status);
+}
+
+/* Нажатие в любом месте карточки открывает задачу: на телефоне попасть в строку названия трудно. */
+.card .link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.card:has(.link:focus-visible) {
+  outline: 2px solid var(--app-text);
+  outline-offset: 2px;
+}
+
+.card .link:focus-visible {
+  outline: none;
+}
+
+.cardMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-sm);
+  font-size: var(--mantine-font-size-sm);
+  color: var(--app-text-muted);
+}
+
+.cardMeta > :first-child {
+  min-width: 0;
+}

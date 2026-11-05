@@ -1,4 +1,5 @@
-import { Button, Group, Stack, Textarea } from '@mantine/core';
+import { Button, Stack, Textarea } from '@mantine/core';
+import classes from './task.module.css';
 import { useTaskStatusActions } from './useTaskStatusActions';
 import type { TaskActionsTask } from './useTaskStatusActions';
 
@@ -11,7 +12,7 @@ export function TaskActions({ task }: { task: TaskActionsTask }) {
   if (actions.length === 0) return null;
 
   return (
-    <Stack gap="xs">
+    <Stack gap="sm">
       <Textarea
         label="Комментарий"
         autosize
@@ -22,7 +23,8 @@ export function TaskActions({ task }: { task: TaskActionsTask }) {
         disabled={busy}
         onChange={(event) => updateComment(event.currentTarget.value)}
       />
-      <Group gap="sm">
+      {/* Одни и те же кнопки: на телефоне CSS закрепляет их внизу экрана, копий в разметке нет. */}
+      <div className={`${classes.actions} ${classes.sticky}`} data-sticky-actions>
         {actions.map((action) => (
           <Button
             key={action.to}
@@ -34,7 +36,7 @@ export function TaskActions({ task }: { task: TaskActionsTask }) {
             {action.label}
           </Button>
         ))}
-      </Group>
+      </div>
     </Stack>
   );
 }

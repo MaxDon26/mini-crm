@@ -1,4 +1,4 @@
-import { Center, Paper, Stack, Title } from '@mantine/core';
+import { Center, Paper, Stack, Text, Title } from '@mantine/core';
 import { Navigate } from 'react-router';
 import { LoginForm } from '@/features/auth';
 import { useCurrentUser } from '@/shared/currentUser';
@@ -11,13 +11,18 @@ export function LoginPage() {
   }
 
   return (
-    <Center mih="100vh" p="md">
-      <Paper withBorder p="lg" w={380} maw="100%">
-        <Stack>
-          <Title order={2}>Вход</Title>
-          {current.status === 'loading' ? <CurrentUserPending state={current} /> : <LoginForm />}
-        </Stack>
-      </Paper>
+    <Center mih="100dvh" p="md">
+      <Stack gap="md" w={400} maw="100%">
+        <Text fw={600} c="dimmed" ta="center">
+          Объекты и задачи
+        </Text>
+        <Paper withBorder radius="lg" p={{ base: 'lg', sm: 'xl' }}>
+          <Stack gap="lg">
+            <Title order={2}>Вход</Title>
+            {current.status === 'loading' ? <CurrentUserPending state={current} /> : <LoginForm />}
+          </Stack>
+        </Paper>
+      </Stack>
     </Center>
   );
 }

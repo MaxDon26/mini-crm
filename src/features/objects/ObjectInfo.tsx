@@ -1,6 +1,7 @@
-import { Group, Stack, Text, Title } from '@mantine/core';
+import { Group, Text, Title } from '@mantine/core';
 import type { ReactNode } from 'react';
 import type { ObjectItem } from './api';
+import classes from './objects.module.css';
 
 type ObjectInfoProps = {
   object: ObjectItem;
@@ -12,15 +13,19 @@ const dateFormat = new Intl.DateTimeFormat('ru-RU', { dateStyle: 'short' });
 
 export function ObjectInfo({ object, actions }: ObjectInfoProps) {
   return (
-    <Group justify="space-between" align="flex-start" wrap="nowrap">
-      <Stack gap="xs" style={{ overflowWrap: 'anywhere' }}>
+    <div className={classes.info}>
+      <div className={classes.infoText}>
         <Title order={2}>{object.name}</Title>
         <Text>{object.address}</Text>
         <Text size="sm" c="dimmed">
           Создан {dateFormat.format(new Date(object.created_at))}
         </Text>
-      </Stack>
-      {actions && <Group wrap="nowrap">{actions}</Group>}
-    </Group>
+      </div>
+      {actions && (
+        <Group gap="xs" wrap="nowrap">
+          {actions}
+        </Group>
+      )}
+    </div>
   );
 }

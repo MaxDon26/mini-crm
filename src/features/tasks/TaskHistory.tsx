@@ -1,53 +1,57 @@
-import { Stack, Table, Text, Title } from '@mantine/core';
-import { ListSkeleton, QueryBoundary } from '@/shared/ui';
+import { Stack, Title } from '@mantine/core';
+import type { CSSProperties } from 'react';
+import { QueryBoundary, TimelineSkeleton } from '@/shared/ui';
 import { formatShortDateTime } from './formatDate';
 import { describeHistoryEntry } from './historyEntry';
+import classes from './history.module.css';
 import { useTaskHistory } from './hooks';
+import { statusStyle } from './statusStyle';
 import { UNKNOWN_NAME } from './taskRules';
 import type { TaskHistoryRecord } from './types';
 
+// Явный сброс: иначе точка унаследовала бы цвет статуса от родителя.
+const NO_STATUS_STYLE = { '--status': 'initial' } as CSSProperties;
+
 function HistoryRow({ record }: { record: TaskHistoryRecord }) {
+  // Смена исполнителя статус не меняет, поэтому её точка без цвета.
+  const style = record.toStatus ? statusStyle(record.toStatus) : NO_STATUS_STYLE;
   return (
-    <Table.Tr>
-      <Table.Td style={{ whiteSpace: 'nowrap' }}>{formatShortDateTime(record.createdAt)}</Table.Td>
-      <Table.Td>{record.actorName ?? UNKNOWN_NAME}</Table.Td>
-      <Table.Td style={{ wordBreak: 'break-word' }}>
+    <tr role="row" className={classes.entry} style={style}>
+      <td role="cell" className={classes.date}>
+        {formatShortDateTime(record.createdAt)}
+      </td>
+      <td role="cell" className={classes.actor}>
+        {record.actorName ?? UNKNOWN_NAME}
+      </td>
+      <td role="cell" className={classes.text}>
         {describeHistoryEntry(record).text}
-        {record.comment && (
-          <Text size="sm" c="dimmed" style={{ whiteSpace: 'pre-wrap' }}>
-            Комментарий: {record.comment}
-          </Text>
-        )}
-      </Table.Td>
-    </Table.Tr>
+        {record.comment && <p className={classes.comment}>Комментарий: {record.comment}</p>}
+      </td>
+    </tr>
   );
 }
 
 export function TaskHistory({ taskId }: { taskId: string }) {
   const history = useTaskHistory(taskId);
   return (
-    <Stack gap="xs">
+    <Stack gap="md">
       <Title order={3}>История</Title>
-      <QueryBoundary
-        query={history}
-        skeleton={<ListSkeleton rows={3} columns={3} />}
-        emptyText="Записей пока нет"
-      >
+      <QueryBoundary query={history} skeleton={<TimelineSkeleton />} emptyText="Записей пока нет">
         {(records) => (
-          <Table>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>Когда</Table.Th>
-                <Table.Th>Кто</Table.Th>
-                <Table.Th>Что</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
+          <table role="table" className={classes.timeline}>
+            <thead className={classes.hiddenHead}>
+              <tr role="row">
+                <th role="columnheader">Когда</th>
+                <th role="columnheader">Кто</th>
+                <th role="columnheader">Что</th>
+              </tr>
+            </thead>
+            <tbody>
               {records.map((record) => (
                 <HistoryRow key={record.id} record={record} />
               ))}
-            </Table.Tbody>
-          </Table>
+            </tbody>
+          </table>
         )}
       </QueryBoundary>
     </Stack>

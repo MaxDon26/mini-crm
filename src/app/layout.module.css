@@ -1,0 +1,108 @@
+.content {
+  width: 100%;
+  max-width: calc(var(--app-content-width) + 2 * var(--mantine-spacing-lg));
+  margin-inline: auto;
+  padding-inline: var(--mantine-spacing-lg);
+}
+
+.main {
+  padding-block: var(--mantine-spacing-lg) var(--mantine-spacing-xl);
+}
+
+.header {
+  background: var(--app-surface);
+  border-bottom: 1px solid var(--app-line);
+}
+
+.bar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-areas: 'title nav user signout';
+  align-items: center;
+  column-gap: var(--mantine-spacing-lg);
+  row-gap: var(--mantine-spacing-xs);
+  min-height: 60px;
+  padding-block: var(--mantine-spacing-xs);
+}
+
+.title {
+  grid-area: title;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.nav {
+  grid-area: nav;
+  display: flex;
+  gap: var(--mantine-spacing-lg);
+  min-width: 0;
+}
+
+.navLink {
+  padding: 8px 0;
+  color: var(--app-text-muted);
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.navLink:hover {
+  color: var(--app-text);
+}
+
+/* Текущий раздел отмечен чертой, а не цветом: цвет занят статусами. */
+.navLink[aria-current='page'] {
+  color: var(--app-text);
+  box-shadow: inset 0 -2px 0 var(--app-text);
+}
+
+.navLink:focus-visible {
+  outline: 2px solid var(--app-text);
+  outline-offset: 2px;
+}
+
+.user {
+  grid-area: user;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.userName {
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.userRole {
+  font-size: var(--mantine-font-size-xs);
+  color: var(--app-text-muted);
+}
+
+.signOut {
+  grid-area: signout;
+}
+
+/* На телефоне разделы уходят во второй ряд (раздел 3.9). */
+@media (max-width: 47.99em) {
+  .content {
+    padding-inline: var(--mantine-spacing-md);
+  }
+
+  .main {
+    padding-block: var(--mantine-spacing-md) var(--mantine-spacing-lg);
+  }
+
+  .bar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'title user'
+      'nav signout';
+    column-gap: var(--mantine-spacing-sm);
+    padding-block: var(--mantine-spacing-xs);
+  }
+}

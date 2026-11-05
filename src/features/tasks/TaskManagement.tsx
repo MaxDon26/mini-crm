@@ -25,7 +25,7 @@ export function TaskManagement({ task, onDeleted }: TaskManagementProps) {
           Изменить
         </Button>
       )}
-      <Button variant="outline" color="red" disabled={busy} onClick={confirm.open}>
+      <Button variant="default" disabled={busy} onClick={confirm.open}>
         Удалить
       </Button>
       {/* Задачу могли принять, пока окно открыто: править её уже нельзя. */}

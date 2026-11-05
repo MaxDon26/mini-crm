@@ -1,0 +1,96 @@
+/*
+ * Лента истории. Разметка остаётся таблицей с явными ролями: изменённое отображение таблицы иначе
+ * лишило бы её смысла для чтения с экрана.
+ */
+.timeline {
+  display: block;
+  width: 100%;
+}
+
+.timeline tbody {
+  display: block;
+}
+
+.hiddenHead {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.entry {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'actor date'
+    'text text';
+  column-gap: var(--mantine-spacing-sm);
+  row-gap: 2px;
+  padding: 0 0 var(--mantine-spacing-lg) 28px;
+}
+
+.entry:last-child {
+  padding-bottom: 0;
+}
+
+/* Точка цвета статуса, в который перешла задача; у смены исполнителя — пустой кружок. */
+.entry::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 5px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--status, var(--app-surface));
+  box-shadow: 0 0 0 3px var(--app-page);
+  border: 2px solid var(--status, var(--app-text-muted));
+  box-sizing: border-box;
+}
+
+.entry::after {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 22px;
+  bottom: 2px;
+  width: 2px;
+  background: var(--app-line);
+}
+
+.entry:last-child::after {
+  display: none;
+}
+
+.date {
+  grid-area: date;
+  font-size: var(--mantine-font-size-sm);
+  color: var(--app-text-muted);
+  white-space: nowrap;
+}
+
+.actor {
+  grid-area: actor;
+  font-size: var(--mantine-font-size-sm);
+  color: var(--app-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.text {
+  grid-area: text;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.comment {
+  margin: 6px 0 0;
+  padding: 8px 12px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-line);
+  border-radius: var(--mantine-radius-md);
+  font-weight: 400;
+  white-space: pre-wrap;
+}

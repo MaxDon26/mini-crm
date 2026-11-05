@@ -1,0 +1,139 @@
+/* Строки таблицы — отдельные полосы на белом, как список задач. */
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 6px;
+  margin-block: -6px;
+}
+
+.table th {
+  padding: 0 var(--mantine-spacing-md) 2px;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 500;
+  color: var(--app-text-muted);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  background: var(--app-surface);
+  border-block: 1px solid var(--app-line);
+  vertical-align: middle;
+}
+
+.table td:first-child {
+  border-left: 1px solid var(--app-line);
+  border-radius: var(--mantine-radius-lg) 0 0 var(--mantine-radius-lg);
+}
+
+.table td:last-child {
+  border-right: 1px solid var(--app-line);
+  border-radius: 0 var(--mantine-radius-lg) var(--mantine-radius-lg) 0;
+}
+
+.nameCell {
+  overflow-wrap: anywhere;
+}
+
+/* Узкие столбцы по содержимому, остальное место у названия. */
+.progressColumn {
+  width: 220px;
+}
+
+.fitColumn {
+  width: 1%;
+}
+
+@media (max-width: 61.99em) {
+  .progressColumn {
+    width: 170px;
+  }
+}
+
+.narrow {
+  white-space: nowrap;
+}
+
+.name {
+  color: var(--app-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.name:hover {
+  text-decoration: underline;
+}
+
+.name:focus-visible {
+  outline: 2px solid var(--app-text);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.address {
+  margin-top: 2px;
+  font-size: var(--mantine-font-size-sm);
+  color: var(--app-text-muted);
+}
+
+/* Цвет статуса «На проверке» только когда есть что проверять (Р22): ноль не должен звать к действию. */
+.inReview {
+  display: inline-block;
+  min-width: 28px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--status-in_review-light);
+  color: var(--status-in_review-dark);
+  font-weight: 600;
+  text-align: center;
+}
+
+.zero {
+  color: var(--app-text-muted);
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-sm);
+  padding: var(--mantine-spacing-md);
+  background: var(--app-surface);
+  border: 1px solid var(--app-line);
+  border-radius: var(--mantine-radius-lg);
+  overflow-wrap: anywhere;
+}
+
+.cardFooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-xs);
+  font-size: var(--mantine-font-size-sm);
+}
+
+.info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-md);
+}
+
+.infoText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

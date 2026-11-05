@@ -1,14 +1,14 @@
-import { Container } from '@mantine/core';
 import { Outlet } from 'react-router';
+import classes from './layout.module.css';
 import { TopBar } from './TopBar';
 
 export function App() {
   return (
     <>
       <TopBar />
-      <Container component="main" size="lg" py="md">
+      <main className={`${classes.content} ${classes.main}`}>
         <Outlet />
-      </Container>
+      </main>
     </>
   );
 }

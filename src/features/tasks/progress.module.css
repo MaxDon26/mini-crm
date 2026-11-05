@@ -1,0 +1,55 @@
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.track {
+  display: flex;
+  gap: 2px;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--app-line);
+}
+
+.large .track {
+  height: 12px;
+  border-radius: 6px;
+}
+
+/* Минимальная ширина: одна задача из сотни всё равно должна быть видна. */
+.segment {
+  min-width: 6px;
+  background: var(--status);
+}
+
+.caption {
+  font-size: var(--mantine-font-size-sm);
+  color: var(--app-text-muted);
+  white-space: nowrap;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px var(--mantine-spacing-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--mantine-font-size-sm);
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.tooltipList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}

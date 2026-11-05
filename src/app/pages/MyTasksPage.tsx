@@ -5,7 +5,7 @@ import { ListSkeleton, QueryBoundary } from '@/shared/ui';
 export function MyTasksPage() {
   const tasks = useMyTasks();
   return (
-    <Stack>
+    <Stack gap="lg">
       <Title order={2}>Мои задачи</Title>
       <QueryBoundary
         query={tasks}

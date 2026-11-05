@@ -1,8 +1,8 @@
-import { Box, Button, Container, Group, Text } from '@mantine/core';
-import { Link, useMatch } from 'react-router';
+import { NavLink } from 'react-router';
 import { SignOutButton } from '@/features/auth';
 import { ROLE_LABELS, useReadyUser } from '@/shared/currentUser';
 import type { Role } from '@/shared/currentUser';
+import classes from './layout.module.css';
 
 const SECTIONS_BY_ROLE: Record<Role, { to: string; label: string }[]> = {
   manager: [{ to: '/objects', label: 'Объекты' }],
@@ -12,39 +12,28 @@ const SECTIONS_BY_ROLE: Record<Role, { to: string; label: string }[]> = {
   ],
 };
 
-function SectionLink({ to, label }: { to: string; label: string }) {
-  const isActive = useMatch({ path: to, end: false }) !== null;
-  return (
-    <Button component={Link} to={to} size="xs" variant={isActive ? 'light' : 'subtle'}>
-      {label}
-    </Button>
-  );
-}
-
 export function TopBar() {
   const { fullName, role } = useReadyUser();
   return (
-    <Box
-      component="header"
-      py="xs"
-      style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}
-    >
-      <Container size="lg">
-        <Group justify="space-between" gap="xs">
-          <Group component="nav" gap="xs">
-            {SECTIONS_BY_ROLE[role].map((section) => (
-              <SectionLink key={section.to} {...section} />
-            ))}
-          </Group>
-          <Group gap="sm">
-            <Text size="sm">{fullName}</Text>
-            <Text size="sm" c="dimmed">
-              {ROLE_LABELS[role]}
-            </Text>
-            <SignOutButton />
-          </Group>
-        </Group>
-      </Container>
-    </Box>
+    <header className={classes.header}>
+      <div className={`${classes.content} ${classes.bar}`}>
+        {/* Не ссылка: имя «Объекты и задачи» совпало бы по началу с разделом «Объекты». */}
+        <span className={classes.title}>Объекты и задачи</span>
+        <nav className={classes.nav} aria-label="Разделы">
+          {SECTIONS_BY_ROLE[role].map((section) => (
+            <NavLink key={section.to} to={section.to} className={classes.navLink}>
+              {section.label}
+            </NavLink>
+          ))}
+        </nav>
+        <div className={classes.user}>
+          <span className={classes.userName}>{fullName}</span>
+          <span className={classes.userRole}>{ROLE_LABELS[role]}</span>
+        </div>
+        <div className={classes.signOut}>
+          <SignOutButton />
+        </div>
+      </div>
+    </header>
   );
 }

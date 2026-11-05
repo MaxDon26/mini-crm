@@ -1,0 +1,81 @@
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+}
+
+.title {
+  overflow-wrap: anywhere;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+  margin: 0;
+}
+
+.fields dt {
+  color: var(--app-text-muted);
+}
+
+.fields dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.description {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.descriptionLabel {
+  margin-bottom: 4px;
+  font-size: var(--mantine-font-size-sm);
+  color: var(--app-text-muted);
+}
+
+.link {
+  color: var(--app-text);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: var(--app-line);
+  text-underline-offset: 3px;
+}
+
+.link:hover {
+  text-decoration-color: currentColor;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mantine-spacing-sm);
+}
+
+/*
+ * На телефоне кнопки статуса закреплены внизу экрана, поле комментария остаётся в карточке.
+ * Место под панелью оставляет global.css по отметке data-sticky-actions.
+ */
+@media (max-width: 47.99em) {
+  .fields {
+    grid-template-columns: 100px minmax(0, 1fr);
+  }
+
+  .sticky {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 150;
+    padding: var(--mantine-spacing-sm) var(--mantine-spacing-md)
+      calc(var(--mantine-spacing-sm) + env(safe-area-inset-bottom));
+    background: var(--app-surface);
+    border-top: 1px solid var(--app-line);
+  }
+
+  .sticky > * {
+    flex: 1 1 auto;
+  }
+}

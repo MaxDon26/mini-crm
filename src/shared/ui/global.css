@@ -1,0 +1,67 @@
+/*
+ * Общие значения внешнего вида «Ход работ» (раздел 3.9). Цвет в интерфейсе говорит только о статусе:
+ * у каждого статуса насыщенный оттенок для полосы и точек, светлый для фона метки и тёмный для текста
+ * метки. Тёмный на светлом и на белом даёт не ниже 5,7:1.
+ */
+:root {
+  --app-page: #f3f5f8;
+  --app-surface: #ffffff;
+  --app-line: #dce1e8;
+  --app-text: #1d2733;
+  --app-text-muted: #5b6776;
+  --app-content-width: 1080px;
+  /* Высота закреплённой панели кнопок статуса на телефоне: столько места оставляем под содержимым. */
+  --app-sticky-actions-space: 136px;
+
+  --status-new: #6b7684;
+  --status-new-light: #edf0f3;
+  --status-new-dark: #3e4855;
+  --status-in_progress: #2f6feb;
+  --status-in_progress-light: #e6eefd;
+  --status-in_progress-dark: #1a4fb8;
+  --status-in_review: #c77700;
+  --status-in_review-light: #fcf0dc;
+  --status-in_review-dark: #8a4f00;
+  --status-rework: #c93a3a;
+  --status-rework-light: #fbe8e8;
+  --status-rework-dark: #9b2424;
+  --status-accepted: #2e8b57;
+  --status-accepted-light: #e3f2e9;
+  --status-accepted-dark: #1c6a3f;
+}
+
+body {
+  background-color: var(--app-page);
+  color: var(--app-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Заголовок экрана: 30 на компьютере, 24 на телефоне (раздел 3.9). */
+@media (max-width: 47.99em) {
+  :root:root {
+    --mantine-h2-font-size: 1.5rem;
+  }
+}
+
+/* Закреплённые кнопки статуса не должны закрывать конец страницы и поле комментария при фокусе. */
+@media (max-width: 47.99em) {
+  html:has([data-sticky-actions]) {
+    scroll-padding-bottom: var(--app-sticky-actions-space);
+  }
+
+  body:has([data-sticky-actions]) main {
+    padding-bottom: var(--app-sticky-actions-space);
+  }
+}
+
+/* Анимация только в ответ на действие; кто просит меньше движения, не получает и её. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
