@@ -1,5 +1,5 @@
-// З4: сценарии 18 и 19, запись истории при создании и смене исполнителя. Запись о смене статуса
-// появится вместе с действием З5 и проверяется там.
+// З4: сценарии 18 и 19 (смена исполнителя), запись истории при создании. Запись о смене статуса
+// проверяется вместе с действием в actions.test.ts.
 import assert from 'node:assert/strict';
 import { before, describe, test } from 'node:test';
 import type { SupabaseClient } from '@supabase/supabase-js';

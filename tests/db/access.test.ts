@@ -237,12 +237,10 @@ describe('Сценарий 1: гость', () => {
         delete_object: { p_object_id: world.sharedObject.id },
       };
       for (const action of ACTIONS) {
-        const response = await untyped(guestClient(key)).rpc(action, args[action]);
-        // До З5 действий ещё нет, поэтому принимаем и «не найдено»; в З5 останется только отказ в правах.
-        assert.ok(
-          response.error?.code === PG_PERMISSION_DENIED ||
-            response.error?.code === POSTGREST_FUNCTION_NOT_FOUND,
-          `${action}: ${JSON.stringify(response)}`,
+        assertDenied(await untyped(guestClient(key)).rpc(action, args[action]), action);
+        assertDenied(
+          await untyped(serviceClient()).rpc(action, args[action]),
+          `${action}, service`,
         );
       }
       const [task] = await sql<TaskRow>('select * from public.tasks where id = $1', [
@@ -1097,6 +1095,14 @@ describe('Сценарий 26: служебные функции через API 
           `${label}, private.${name}: ${JSON.stringify(viaSchema)}`,
         );
       }
+      for (const action of ACTIONS) {
+        const viaSchema = await client.schema('private').rpc(action, { p_task_id: randomUUID() });
+        assert.equal(
+          viaSchema.error?.code,
+          POSTGREST_INVALID_SCHEMA,
+          `${label}, private.${action}: логика действий доступна только через обёртку`,
+        );
+      }
     }
   });
 
@@ -1242,6 +1248,7 @@ describe('Сценарий 27: обзор базы', () => {
       schema: string;
       name: string;
       definer: boolean;
+      volatility: string;
       config: string[] | null;
       args: string[] | null;
       public_can: boolean;
@@ -1250,6 +1257,7 @@ describe('Сценарий 27: обзор базы', () => {
       authenticated_can: boolean;
     }>(
       `select n.nspname as schema, p.proname as name, p.prosecdef as definer,
+              p.provolatile::text as volatility,
               p.proconfig as config, p.proargnames::text[] as args,
               has_function_privilege('public', p.oid, 'execute') as public_can,
               has_function_privilege('anon', p.oid, 'execute') as anon_can,
@@ -1284,6 +1292,24 @@ describe('Сценарий 27: обзор базы', () => {
         row.config?.some((entry) => /^search_path=(""|'')?$/.test(entry)),
         `${label}: search_path ${JSON.stringify(row.config)}`,
       );
+    }
+
+    assert.deepEqual(
+      rows
+        .filter((row) => row.schema === 'public')
+        .map((row) => row.name)
+        .sort(),
+      [...ACTIONS],
+      'в открытой схеме только три обёртки',
+    );
+    for (const action of ACTIONS) {
+      const logic = rows.find((row) => row.schema === 'private' && row.name === action);
+      assert.equal(logic?.definer, true, `private.${action}: повышенные права`);
+      // Стабильная функция работала бы на снимке начала запроса и не увидела бы задачу, созданную
+      // пока удаление объекта ждало блокировку.
+      for (const row of rows.filter((candidate) => candidate.name === action)) {
+        assert.equal(row.volatility, 'v', `${row.schema}.${action}: изменяемая функция`);
+      }
     }
   });
 

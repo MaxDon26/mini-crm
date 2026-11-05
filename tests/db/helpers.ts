@@ -102,13 +102,22 @@ export async function sqlAs<Row extends QueryResultRow = QueryResultRow>(
   }
 }
 
-/** Держит транзакцию postgres открытой, пока работает body, и фиксирует её: для проверки блокировок. */
+/**
+ * Держит транзакцию postgres открытой, пока работает body, и фиксирует её: для проверки блокировок.
+ * С userId триггеры и функции внутри транзакции видят этого пользователя как текущего.
+ */
 export async function inTransaction<Result>(
   body: (query: (text: string, params?: readonly unknown[]) => Promise<unknown>) => Promise<Result>,
+  userId?: string,
 ): Promise<Result> {
   const connection = await pool.connect();
   try {
     await connection.query('begin');
+    if (userId) {
+      await connection.query(`select set_config('request.jwt.claims', $1, true)`, [
+        JSON.stringify({ sub: userId, role: 'authenticated' }),
+      ]);
+    }
     const result = await body((text, params = []) => connection.query(text, [...params]));
     await connection.query('commit');
     return result;

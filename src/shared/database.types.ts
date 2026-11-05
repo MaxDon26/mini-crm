@@ -121,7 +121,15 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            [_ in never]: never
+            "change_task_status":
+{ Args: { "p_comment"?: string,"p_expected_status": Database["public"]['Enums']["task_status"],"p_new_status": Database["public"]['Enums']["task_status"],"p_task_id": string }; Returns: undefined
+                           },
+"delete_object":
+{ Args: { "p_object_id": string }; Returns: undefined
+                           },
+"delete_task":
+{ Args: { "p_task_id": string }; Returns: undefined
+                           }
           }
           Enums: {
             "app_role": "manager"|"executor","task_status": "new"|"in_progress"|"in_review"|"accepted"|"rework"
