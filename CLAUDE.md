@@ -14,7 +14,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   запущенный Docker Desktop.
 - `npm run test:db` (локальная Supabase должна быть запущена), `npm run test:unit`, `npm run test:e2e`.
 - Один файл тестов: `node --test tests/db/access.test.ts`.
-- В npm и GitHub ходить с очищенными `HTTPS_PROXY`, `HTTP_PROXY`, `ALL_PROXY`.
+- В npm, GitHub и при `npm run test:e2e` очищать `HTTPS_PROXY`, `HTTP_PROXY`, `ALL_PROXY`: иначе Playwright не дождётся сайта.
+- В heredoc Git Bash обратные слэши могут теряться: файлы с `\` и `\u` записывать инструментами `Write` и `Edit`.
 
 ## Где что
 

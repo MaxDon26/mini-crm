@@ -1,5 +1,9 @@
-import { QueryClient } from '@tanstack/react-query';
+import { notifyManager, QueryClient } from '@tanstack/react-query';
 import { getErrorCode } from './dbErrors';
+
+// По умолчанию о начале запроса экран узнаёт через таймер, и второй щелчок двойного клика успевает
+// пройти до блокировки кнопки: объект создавался дважды. Микрозадача выполняется раньше следующего щелчка.
+notifyManager.setScheduler(queueMicrotask);
 
 const MAX_RETRIES = 1;
 
