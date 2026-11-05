@@ -1,6 +1,7 @@
 // Помощники тестов защиты базы (контракт, раздел 3.8). Работают только с локальной Supabase:
 // секретный ключ и подключение postgres нужны для подготовки данных и обзора, а доказательством
 // считаются только запросы через API с токеном участника.
+import assert from 'node:assert/strict';
 import { execSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
@@ -9,6 +10,7 @@ import type { Database, Tables, TablesInsert } from '../../src/shared/database.t
 
 export type DbClient = SupabaseClient<Database>;
 export type AppRole = Database['public']['Enums']['app_role'];
+export type TaskStatus = Database['public']['Enums']['task_status'];
 export type ObjectRow = Tables<'objects'>;
 export type TaskRow = Tables<'tasks'>;
 
@@ -74,13 +76,15 @@ export async function sql<Row extends QueryResultRow = QueryResultRow>(
 }
 
 /**
- * Запрос от роли authenticated и указанного пользователя внутри отменяемой транзакции. Нужен только
- * служебным функциям: через API их не вызвать, поэтому ответ можно увидеть лишь так.
+ * Запрос от указанного пользователя внутри отменяемой транзакции. Нужен там, куда не дойти через API:
+ * служебным функциям (роль authenticated) и триггерам, когда права и RLS не должны сработать раньше
+ * них (роль postgres, у неё прав хватает, а пользователь в запросе есть).
  */
 export async function sqlAs<Row extends QueryResultRow = QueryResultRow>(
   userId: string | null,
   text: string,
   params: readonly unknown[] = [],
+  role: 'authenticated' | 'postgres' = 'authenticated',
 ): Promise<Row[]> {
   const connection = await pool.connect();
   try {
@@ -89,13 +93,41 @@ export async function sqlAs<Row extends QueryResultRow = QueryResultRow>(
     await connection.query(`select set_config('request.jwt.claims', $1, true)`, [
       JSON.stringify(claims),
     ]);
-    await connection.query('set local role authenticated');
+    if (role === 'authenticated') await connection.query('set local role authenticated');
     const result = await connection.query<Row>(text, [...params]);
     return result.rows;
   } finally {
     await connection.query('rollback');
     connection.release();
   }
+}
+
+/** Держит транзакцию postgres открытой, пока работает body, и фиксирует её: для проверки блокировок. */
+export async function inTransaction<Result>(
+  body: (query: (text: string, params?: readonly unknown[]) => Promise<unknown>) => Promise<Result>,
+): Promise<Result> {
+  const connection = await pool.connect();
+  try {
+    await connection.query('begin');
+    const result = await body((text, params = []) => connection.query(text, [...params]));
+    await connection.query('commit');
+    return result;
+  } catch (error) {
+    await connection.query('rollback');
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
+
+/** Отказ базы: код чистым текстом в message (контракт 3.8). Права дают 42501, остальные правила P0001. */
+export function assertRefusal(
+  response: { error: { code?: string; message?: string } | null },
+  refusal: string,
+  label = refusal,
+): void {
+  assert.equal(response.error?.message, refusal, `${label}: ${JSON.stringify(response.error)}`);
+  assert.equal(response.error?.code, refusal === 'forbidden' ? '42501' : 'P0001', label);
 }
 
 /** Клиент без входа. По умолчанию с тем ключом, что на новых проектах получает сайт. */
@@ -163,8 +195,10 @@ export async function createTask(client: DbClient, fields: TaskFields): Promise<
   return data;
 }
 
+// Исполнителя здесь нет: без текущего пользователя база отказывает в его смене. Назначайте его
+// при создании или правкой постановщика через API.
 export type TaskStateFields = Partial<
-  Pick<TaskRow, 'status' | 'assignee_id' | 'author_id' | 'deleted_at' | 'deleted_by'>
+  Pick<TaskRow, 'status' | 'author_id' | 'deleted_at' | 'deleted_by'>
 >;
 
 /** Прямой правкой ставит задачу в нужное состояние. Только подготовка данных, не доказательство. */
