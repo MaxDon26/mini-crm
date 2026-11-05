@@ -10,6 +10,8 @@ type ConfirmModalProps = {
   confirmColor?: string;
   /** Идёт запрос: кнопки заблокированы, окно не закрыть. */
   loading?: boolean;
+  /** Подтвердить пока нельзя, но окно можно закрыть: например, идёт подготовительный запрос. */
+  confirmDisabled?: boolean;
   onConfirm: () => void;
   onClose: () => void;
 };
@@ -26,6 +28,7 @@ export function ConfirmModal({
   confirmLabel,
   confirmColor = 'red',
   loading = false,
+  confirmDisabled = false,
   onConfirm,
   onClose,
 }: ConfirmModalProps) {
@@ -44,7 +47,12 @@ export function ConfirmModal({
           <Button variant="default" disabled={loading} onClick={onClose}>
             Отмена
           </Button>
-          <Button color={confirmColor} loading={loading} onClick={onConfirm}>
+          <Button
+            color={confirmColor}
+            loading={loading}
+            disabled={confirmDisabled}
+            onClick={onConfirm}
+          >
             {confirmLabel}
           </Button>
         </Group>

@@ -374,11 +374,11 @@ tests/                  db (защита через API), unit (логика с�
 | `shared/supabaseClient.ts` | `supabase` с типами схемы | З6 |
 | `shared/currentUser.tsx` | `CurrentUserProvider`, `useCurrentUser`: состояние `loading` (со сбоем чтения профиля в `error` и `retry`), `anonymous`, `no_profile` или `ready` и `{ id, fullName, role }`; `useReadyUser` для экранов за проверкой входа; `ROLE_LABELS` | З6 |
 | `shared/queryKeys.ts` | Единые ключи запросов, чтобы разделы обновляли данные друг друга без импорта | З6 |
-| `shared/ui` | `QueryBoundary` (скелетон, ошибка с «Повторить», пустой список), `ListSkeleton`, `CardSkeleton`, `FetchingIndicator`, `ConfirmModal`, `ErrorState`, `notifyError` | З6 |
+| `shared/ui` | `QueryBoundary` (скелетон, ошибка с «Повторить», пустой список), `ListSkeleton`, `CardSkeleton`, `FetchingIndicator`, `ConfirmModal` (`loading`, `confirmDisabled`), `ErrorState`, `notifyError` | З6 |
 | `shared/dbErrors.ts` | `getErrorCode(error)`, `toUserMessage(error)`. Без импортов через `@/`, чтобы работать в `node:test` | З7 |
 | `features/tasks/statuses.ts` | `TaskStatus`, `STATUS_LABELS`, `TRANSITIONS`, `getAvailableActions({ status, role, isAssignee })`. Без импортов через `@/` | З7 |
 | `features/auth` | `signIn`, `signOut`, `LoginForm` | З6 |
-| `features/objects` | `useObjects`, `useObject`, `useDeleteObject`, `ObjectsTable`, `ObjectInfo`, `ObjectFormModal` | З8 |
+| `features/objects` | `useObjects`, `useObject`, `useDeleteObject` (даёт `{ request(object), modal, isPending }`: окно с числом задач уже внутри), `ObjectsTable`, `ObjectInfo`, `ObjectFormModal` | З8 |
 | `features/tasks` | `useObjectTasks`, `useMyTasks`, `useTask`, `useTaskHistory`, `useChangeTaskStatus`, `useDeleteTask`, `TaskList`, `TaskActions`, `TaskHistory`, `TaskFormModal` | З9 |
 
 `TaskFormModal` получает список объектов параметром от экрана, поэтому разделы не импортируют друг друга.
@@ -470,7 +470,7 @@ Supabase понадобится только в одном случае: есл�
 | З5 | База: смена статуса, удаление, обёртки | Блокирующая | З4 | З8, З9, З10, З12 | Агент базы | 4, 6, 7, 10, 12, 14, 19 (смена статуса), 20, 21, 22, 23, 24, 25 | Готово |
 | З6 | Каркас сайта | Блокирующая | З2 | З8, З9 | Агент | Типы, ESLint, вход | Готово |
 | З7 | Логика кнопок и текстов ошибок | Блокирующая | З2 | З9, З10 | Агент | 28 | Готово |
-| З8 | Сайт: объекты | Блокирующая | З5, З6 | З11 | Агент | Типы, ESLint, снимки | — |
+| З8 | Сайт: объекты | Блокирующая | З5, З6 | З11 | Агент | Типы, ESLint, снимки | Готово |
 | З9 | Сайт: задачи | Блокирующая | З5, З6, З7 | З11 | Агент | Типы, ESLint, снимки | — |
 | З10 | Сверка кнопок с базой | Неблокирующая | З5, З7 | — | Агент | 20 полностью | Готово |
 | З11 | Сайт: карточка объекта | Блокирующая | З8, З9 | З13, З14 | Агент | Типы, ESLint, снимки | — |
