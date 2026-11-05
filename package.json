@@ -20,7 +20,8 @@
     "test:db": "node --test --test-concurrency=1 \"tests/db/**/*.test.ts\"",
     "test:unit": "node --test \"tests/unit/**/*.test.ts\"",
     "test:e2e": "playwright test",
-    "seed": "node scripts/seed.ts"
+    "seed": "node --env-file=.env.local scripts/seed.ts",
+    "seed:cloud": "node --env-file=.env.cloud.local scripts/seed.ts"
   },
   "dependencies": {
     "@mantine/core": "^9.7.5",
