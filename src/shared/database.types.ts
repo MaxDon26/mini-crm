@@ -5,7 +5,117 @@ export type Database = {
   
   "public": {
           Tables: {
-            [_ in never]: never
+            "objects": {
+                  Row: {
+                    "address": string,"created_at": string,"deleted_at": string | null,"deleted_by": string | null,"id": string,"name": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "address": string,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"id"?: string,"name": string
+                  }
+                  Update: {
+                    "address"?: string,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"id"?: string,"name"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "objects_deleted_by_fkey"
+      columns: ["deleted_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"profiles": {
+                  Row: {
+                    "full_name": string,"id": string,"role": Database["public"]['Enums']["app_role"]
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "full_name": string,"id": string,"role"?: Database["public"]['Enums']["app_role"]
+                  }
+                  Update: {
+                    "full_name"?: string,"id"?: string,"role"?: Database["public"]['Enums']["app_role"]
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"task_history": {
+                  Row: {
+                    "actor_id": string,"comment": string | null,"created_at": string,"from_assignee_id": string | null,"from_status": Database["public"]['Enums']["task_status"] | null,"id": number,"task_id": string,"to_assignee_id": string | null,"to_status": Database["public"]['Enums']["task_status"] | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "actor_id": string,"comment"?: string | null,"created_at"?: string,"from_assignee_id"?: string | null,"from_status"?: Database["public"]['Enums']["task_status"] | null,"id"?: never,"task_id": string,"to_assignee_id"?: string | null,"to_status"?: Database["public"]['Enums']["task_status"] | null
+                  }
+                  Update: {
+                    "actor_id"?: string,"comment"?: string | null,"created_at"?: string,"from_assignee_id"?: string | null,"from_status"?: Database["public"]['Enums']["task_status"] | null,"id"?: never,"task_id"?: string,"to_assignee_id"?: string | null,"to_status"?: Database["public"]['Enums']["task_status"] | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "task_history_actor_id_fkey"
+      columns: ["actor_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "task_history_from_assignee_id_fkey"
+      columns: ["from_assignee_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "task_history_task_id_fkey"
+      columns: ["task_id"]
+isOneToOne: false
+      referencedRelation: "tasks"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "task_history_to_assignee_id_fkey"
+      columns: ["to_assignee_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"tasks": {
+                  Row: {
+                    "assignee_id": string | null,"author_id": string,"created_at": string,"deleted_at": string | null,"deleted_by": string | null,"description": string | null,"id": string,"object_id": string,"status": Database["public"]['Enums']["task_status"],"title": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "assignee_id"?: string | null,"author_id"?: string,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"id"?: string,"object_id": string,"status"?: Database["public"]['Enums']["task_status"],"title": string
+                  }
+                  Update: {
+                    "assignee_id"?: string | null,"author_id"?: string,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"id"?: string,"object_id"?: string,"status"?: Database["public"]['Enums']["task_status"],"title"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "tasks_assignee_id_fkey"
+      columns: ["assignee_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tasks_author_id_fkey"
+      columns: ["author_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tasks_deleted_by_fkey"
+      columns: ["deleted_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tasks_object_id_fkey"
+      columns: ["object_id"]
+isOneToOne: false
+      referencedRelation: "objects"
+      referencedColumns: ["id"]
+    }
+                  ]
+                }
           }
           Views: {
             [_ in never]: never
@@ -14,7 +124,7 @@ export type Database = {
             [_ in never]: never
           }
           Enums: {
-            [_ in never]: never
+            "app_role": "manager"|"executor","task_status": "new"|"in_progress"|"in_review"|"accepted"|"rework"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -130,7 +240,7 @@ export type CompositeTypes<
 export const Constants = {
   "public": {
           Enums: {
-            
+            "app_role": ["manager", "executor"],"task_status": ["new", "in_progress", "in_review", "accepted", "rework"]
           }
         }
 } as const
