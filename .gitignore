@@ -29,3 +29,4 @@ supabase/.temp/
 .claude/
 .vercel/
 *.local.md
+*.local.pdf
