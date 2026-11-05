@@ -1,0 +1,25 @@
+# Локальные файлы с учётными данными и исходник ТЗ
+claude.bat
+*.docx.pdf
+
+# Настройки окружения: в репозитории только пример
+.env
+.env.*
+!.env.example
+
+# Зависимости и сборка
+node_modules/
+dist/
+
+# Тесты в браузере
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Локальная Supabase
+supabase/.branches/
+supabase/.temp/
+
+# Прочее
+*.log
+.DS_Store

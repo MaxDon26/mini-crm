@@ -1,0 +1,7 @@
+dist
+docs
+supabase/.temp
+src/shared/database.types.ts
+package-lock.json
+CLAUDE.md
+README.md
