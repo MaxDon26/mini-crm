@@ -426,7 +426,6 @@ describe('Сценарий 3: исполнитель не меняет зада�
       { title: 'взломано' },
       { description: 'взломано' },
       { assignee_id: world.stranger.id },
-      { object_id: world.foreignObject.id },
     ]) {
       const response = await client
         .from('tasks')
@@ -438,10 +437,11 @@ describe('Сценарий 3: исполнитель не меняет зада�
     assert.deepEqual(await rowSnapshot('tasks', world.ownTask.id), before);
   });
 
-  test('правка своей задачи: статус, автор и отметка закрыты правами на колонки', async () => {
+  test('правка своей задачи: статус, автор, отметка и объект закрыты правами на колонки', async () => {
     const before = await rowSnapshot('tasks', world.ownTask.id);
     const { client } = world.executor;
     for (const fields of [
+      { object_id: world.foreignObject.id },
       { status: 'in_progress' as const },
       { author_id: world.executor.id },
       { deleted_at: new Date().toISOString() },
@@ -667,7 +667,6 @@ describe('Сценарий 8: постановщик не меняет служ�
       .update({
         title: 'Новое название',
         description: 'Описание',
-        object_id: world.sharedObject.id,
         assignee_id: world.stranger.id,
       })
       .eq('id', task.id)
@@ -675,9 +674,28 @@ describe('Сценарий 8: постановщик не меняет служ�
       .single();
     assert.equal(updatedTask.error, null);
     assert.equal(updatedTask.data?.title, 'Новое название');
-    assert.equal(updatedTask.data?.object_id, world.sharedObject.id);
+    assert.equal(updatedTask.data?.object_id, object.id);
     assert.equal(updatedTask.data?.assignee_id, world.stranger.id);
     assert.equal(updatedTask.data?.status, 'new');
+  });
+
+  test('объект задачи задаётся при создании, прямая правка получает отказ (Р28)', async () => {
+    const { client } = world.manager;
+    const object = await createObject(client);
+    const task = await createTask(client, { object_id: object.id });
+    const before = await rowSnapshot('tasks', task.id);
+    assertDenied(
+      await client.from('tasks').update({ object_id: world.sharedObject.id }).eq('id', task.id),
+      'перенос задачи',
+    );
+    assertDenied(
+      await client
+        .from('tasks')
+        .update({ title: 'Новое название', object_id: world.sharedObject.id })
+        .eq('id', task.id),
+      'перенос рядом с разрешённым полем',
+    );
+    assert.deepEqual(await rowSnapshot('tasks', task.id), before);
   });
 });
 
@@ -942,6 +960,25 @@ describe('Обязательные значения (план З3, шаг 3)', (
     }
   });
 
+  test('мягкий перенос и невидимые соединители считаются пробельными', async () => {
+    // Мягкий перенос (U+00AD), разъединитель и соединитель нулевой ширины (U+200C, U+200D).
+    const codes = [0xad, 0x200c, 0x200d];
+    const accepted = await sql<{ code: number }>(
+      `select code from unnest($1::int[]) as code where private.has_text(chr(code))`,
+      [codes],
+    );
+    assert.deepEqual(accepted, [], 'эти символы приняты за текст');
+
+    const { client } = world.manager;
+    const invisible = String.fromCharCode(...codes);
+    const title = await client
+      .from('tasks')
+      .insert({ title: ` ${invisible} `, object_id: world.sharedObject.id });
+    assert.equal(title.error?.code, PG_CHECK_VIOLATION, 'tasks.title');
+    const name = await client.from('objects').insert({ name: invisible, address: 'адрес' });
+    assert.equal(name.error?.code, PG_CHECK_VIOLATION, 'objects.name');
+  });
+
   test('has_text: каждый пробельный символ по его коду, видимый символ считается текстом', async () => {
     const zeroWidthAndSpaces = Array.from({ length: 0x200b - 0x2000 + 1 }, (_, i) => 0x2000 + i);
     const codes = [
@@ -1179,10 +1216,11 @@ describe('Сценарий 27: обзор базы', () => {
                                   p.privilege)`,
     );
     const writable = ['name', 'address'].map((column) => `objects.${column}`);
-    writable.push(
-      ...['title', 'description', 'object_id', 'assignee_id'].map((column) => `tasks.${column}`),
-    );
-    const expected = writable.flatMap((column) => [`${column}:INSERT`, `${column}:UPDATE`]);
+    writable.push(...['title', 'description', 'assignee_id'].map((column) => `tasks.${column}`));
+    // Объект задачи задаётся только при создании (Р28).
+    const expected = writable
+      .flatMap((column) => [`${column}:INSERT`, `${column}:UPDATE`])
+      .concat('tasks.object_id:INSERT');
     assert.deepEqual(columnPrivileges.map((row) => row.entry).sort(), expected.sort());
   });
 

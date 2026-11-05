@@ -68,11 +68,6 @@ describe('history', () => {
 });
 
 describe('rules', () => {
-  it('текст из пробельных символов базы пуст', () => {
-    for (const blank of [' ', '\n\t', '\u00a0', '\u200b', '\u2060', '\u0085', '\ufeff', '\u180e'])
-      assert.equal(R.normalizeText(blank), '');
-    assert.equal(R.normalizeText('  a b \n'), 'a b');
-  });
   it('на проверке первыми, порядок остальных сохранён', () => {
     const t = (id: string, status: TaskStatus) => ({
       id,
@@ -107,10 +102,11 @@ describe('rules', () => {
     assert.deepEqual(R.buildTaskChanges(initial, { ...initial, assigneeId: null }), {
       assignee_id: null,
     });
+    // Объект задачи после создания не меняется (Р28): в правку он не попадает.
     assert.deepEqual(R.buildTaskChanges(initial, { ...initial, objectId: 'o2', title: 'Н' }), {
       title: 'Н',
-      object_id: 'o2',
     });
+    assert.deepEqual(R.buildTaskChanges(initial, { ...initial, objectId: 'o2' }), {});
     assert.deepEqual(
       R.buildTaskChanges({ ...initial, description: 'x' }, { ...initial, description: '' }),
       { description: null },
@@ -142,5 +138,19 @@ describe('rules', () => {
       { title: 'Укажите название', objectId: 'Выберите объект' },
     );
     assert.deepEqual(R.validateTaskForm(initial), {});
+    // Набор пробельных символов общий с базой (shared/text.ts), в том числе новые три.
+    const invisible = String.fromCharCode(0xad, 0x200c, 0x200d);
+    assert.deepEqual(R.validateTaskForm({ ...initial, title: invisible }), {
+      title: 'Укажите название',
+    });
+    assert.deepEqual(
+      R.buildNewTask({
+        title: `${invisible}Т `,
+        description: invisible,
+        objectId: 'o',
+        assigneeId: null,
+      }),
+      { title: 'Т', description: null, object_id: 'o', assignee_id: null },
+    );
   });
 });

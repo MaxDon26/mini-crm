@@ -44,7 +44,7 @@ export const USERS = {
   ivan: { envPrefix: 'SEED_EXECUTOR_1', name: 'Иван Кузнецов', home: '/my-tasks' },
 } as const satisfies Record<string, TestUser>;
 
-function credentials(user: TestUser): { email: string; password: string } {
+export function credentials(user: TestUser): { email: string; password: string } {
   return {
     email: requireEnv(`${user.envPrefix}_EMAIL`),
     password: requireEnv(`${user.envPrefix}_PASSWORD`),

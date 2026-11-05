@@ -3,17 +3,15 @@ import { useDisclosure } from '@mantine/hooks';
 import { ConfirmModal } from '@/shared/ui';
 import { useDeleteTask, useIsTaskBusy } from './hooks';
 import { TaskFormModal } from './TaskFormModal';
-import type { TaskObjectsSource } from './useTaskForm';
 import type { TaskDetails } from './types';
 
 type TaskManagementProps = {
   task: TaskDetails;
-  objects: TaskObjectsSource;
   onDeleted: () => void;
 };
 
 /** «Изменить» и «Удалить» для постановщика. Принятую задачу менять нельзя, удалить можно (Р8). */
-export function TaskManagement({ task, objects, onDeleted }: TaskManagementProps) {
+export function TaskManagement({ task, onDeleted }: TaskManagementProps) {
   const busy = useIsTaskBusy(task.id);
   const remove = useDeleteTask(task.id);
   const [formOpened, form] = useDisclosure(false);
@@ -31,12 +29,7 @@ export function TaskManagement({ task, objects, onDeleted }: TaskManagementProps
         Удалить
       </Button>
       {/* Задачу могли принять, пока окно открыто: править её уже нельзя. */}
-      <TaskFormModal
-        opened={formOpened && editable}
-        task={task}
-        objects={objects}
-        onClose={form.close}
-      />
+      <TaskFormModal opened={formOpened && editable} task={task} onClose={form.close} />
       <ConfirmModal
         opened={confirmOpened}
         title="Удалить задачу?"

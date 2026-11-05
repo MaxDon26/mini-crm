@@ -23,6 +23,7 @@ import {
   type Participant,
 } from './transitions.ts';
 
+const PG_PERMISSION_DENIED = '42501';
 const PG_CHECK_VIOLATION = '23514';
 const PG_INVALID_TEXT = '22P02';
 const NO_BREAK_SPACE = String.fromCharCode(0xa0);
@@ -696,7 +697,7 @@ describe('Сценарий 14: удаление объекта с задачам
     assertRefusal(await deleteObject(otherManager, randomUUID()), 'object_not_found');
   });
 
-  test('в удалённом объекте нельзя создать задачу и перенести её туда', async () => {
+  test('в удалённом объекте нельзя создать задачу, перенести туда тоже нельзя', async () => {
     const deleted = await createObject(manager.client);
     assert.equal((await deleteObject(manager, deleted.id)).error, null);
     assertRefusal(
@@ -704,9 +705,13 @@ describe('Сценарий 14: удаление объекта с задачам
       'object_not_found',
     );
     const task = await taskInStatus('new');
-    assertRefusal(
-      await manager.client.from('tasks').update({ object_id: deleted.id }).eq('id', task.id),
-      'object_not_found',
-    );
+    // Объект задачи не меняется вовсе (Р28): отказ по правам раньше любой проверки объекта.
+    await assertUnchanged(task.id, async () => {
+      const moved = await manager.client
+        .from('tasks')
+        .update({ object_id: deleted.id })
+        .eq('id', task.id);
+      assert.equal(moved.error?.code, PG_PERMISSION_DENIED, JSON.stringify(moved));
+    });
   });
 });

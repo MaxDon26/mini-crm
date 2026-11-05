@@ -38,7 +38,6 @@ let otherManager: TestUser;
 let executor: TestUser;
 let otherExecutor: TestUser;
 let object: ObjectRow;
-let otherObject: ObjectRow;
 
 before(async () => {
   [manager, otherManager, executor, otherExecutor] = await Promise.all([
@@ -47,10 +46,7 @@ before(async () => {
     createUser('executor'),
     createUser('executor'),
   ]);
-  [object, otherObject] = await Promise.all([
-    createObject(manager.client),
-    createObject(manager.client),
-  ]);
+  object = await createObject(manager.client);
 });
 
 /** История задачи через API с токеном: то, что увидит сайт. */
@@ -182,14 +178,14 @@ describe('Сценарий 19: запись о смене исполнителя
     assert.equal((await allHistory(task.id)).length, 1);
   });
 
-  test('правка названия, описания и объекта записи не создаёт (раздел 2.3)', async () => {
+  test('правка названия и описания записи не создаёт (раздел 2.3)', async () => {
     const task = await createTask(manager.client, {
       object_id: object.id,
       assignee_id: executor.id,
     });
     const response = await manager.client
       .from('tasks')
-      .update({ title: 'Новое', description: 'Новое', object_id: otherObject.id })
+      .update({ title: 'Новое', description: 'Новое' })
       .eq('id', task.id)
       .select()
       .single();

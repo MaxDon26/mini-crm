@@ -20,21 +20,39 @@ export type TaskObjectsSource = {
   refetch: () => unknown;
 };
 
-export type TaskFormParams = {
-  /** Правка этой задачи. Без неё форма создаёт новую. */
-  task?: TaskDetails;
-  /** Объект, выбранный заранее при создании. */
-  defaultObjectId?: string;
-  objects: TaskObjectsSource;
-  onClose: () => void;
-};
+/**
+ * Создание или правка. Объект выбирают только при создании: потом он не меняется (Р28), поэтому
+ * форме правки список объектов не нужен.
+ */
+export type TaskFormParams =
+  | {
+      task?: undefined;
+      /** Объект, выбранный заранее. */
+      defaultObjectId?: string;
+      objects: TaskObjectsSource;
+      onClose: () => void;
+    }
+  | {
+      /** Правка этой задачи. */
+      task: TaskDetails;
+      onClose: () => void;
+    };
 
-function getInitialValues({ task, defaultObjectId }: TaskFormParams): TaskFormValues {
+function getInitialValues(params: TaskFormParams): TaskFormValues {
+  const { task } = params;
+  if (task) {
+    return {
+      title: task.title,
+      description: task.description ?? '',
+      objectId: task.objectId,
+      assigneeId: task.assigneeId,
+    };
+  }
   return {
-    title: task?.title ?? '',
-    description: task?.description ?? '',
-    objectId: task?.objectId ?? defaultObjectId ?? null,
-    assigneeId: task?.assigneeId ?? null,
+    title: '',
+    description: '',
+    objectId: params.defaultObjectId ?? null,
+    assigneeId: null,
   };
 }
 
@@ -43,12 +61,8 @@ function getCurrentAssignee(task: TaskDetails | undefined): TaskOption | null {
   return { id: task.assigneeId, name: task.assigneeName ?? UNKNOWN_NAME };
 }
 
-function getCurrentObject(task: TaskDetails | undefined): TaskOption | null {
-  return task ? { id: task.objectId, name: task.objectName ?? UNKNOWN_NAME } : null;
-}
-
 export function useTaskForm(params: TaskFormParams) {
-  const { task, objects, onClose } = params;
+  const { task, onClose } = params;
   const taskId = task?.id;
   // Снимок на момент открытия: фоновое обновление карточки не должно менять, что считается правкой.
   const [initialValues] = useState(() => getInitialValues(params));
@@ -74,7 +88,6 @@ export function useTaskForm(params: TaskFormParams) {
     saving: save.isPending,
     executors,
     executorOptions: withCurrentOption(executors.data ?? [], getCurrentAssignee(task)),
-    objectOptions: withCurrentOption(objects.data ?? [], getCurrentObject(task)),
     assigneeClearable: canClearAssignee(task?.status),
   };
 }

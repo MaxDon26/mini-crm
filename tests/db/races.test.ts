@@ -281,7 +281,7 @@ describe('Сценарий 24: смена исполнителя вместе с
   });
 });
 
-describe('Сценарий 25: создание и перенос задачи вместе с удалением объекта', () => {
+describe('Сценарий 25: создание задачи вместе с удалением объекта', () => {
   test('создание параллельно: живой задачи в удалённом объекте нет', async () => {
     for (let run = 0; run < RUNS; run += 1) {
       const target = await createObject(manager.client);
@@ -312,28 +312,6 @@ describe('Сценарий 25: создание и перенос задачи �
       ]);
       assert.equal(deleted.error, null, JSON.stringify(deleted.error));
       assert.equal(await liveTasksIn(target.id), 0, `прогон ${run}`);
-    }
-  });
-
-  test('перенос параллельно: живой задачи в удалённом объекте нет', async () => {
-    for (let run = 0; run < RUNS; run += 1) {
-      const target = await createObject(manager.client);
-      const task = await taskInStatus('in_progress');
-      const [moved, deleted] = await Promise.all([
-        manager.client.from('tasks').update({ object_id: target.id }).eq('id', task.id).select(),
-        deleteObject(otherManager, target.id),
-      ]);
-      assert.equal(deleted.error, null, JSON.stringify(deleted.error));
-      assert.equal(await liveTasksIn(target.id), 0, `прогон ${run}`);
-      const row = await readTask(task.id);
-      if (moved.error) {
-        assertRefusal(moved, 'object_not_found');
-        assert.equal(row.object_id, object.id);
-        assert.equal(row.deleted_at, null, 'задача осталась живой в прежнем объекте');
-      } else {
-        assert.equal(row.object_id, target.id);
-        assert.equal(row.deleted_by, otherManager.id);
-      }
     }
   });
 
@@ -369,20 +347,6 @@ describe('Сценарий 25: создание и перенос задачи �
     assert.equal(task.deleted_by, otherManager.id);
     const [row] = await sql<ObjectRow>('select * from public.objects where id = $1', [target.id]);
     assert.deepEqual(task.deleted_at, row?.deleted_at, 'то же время, что у объекта');
-  });
-
-  test('порядок задан: перенос первым, удаление ждёт и отмечает перенесённую задачу', async () => {
-    const target = await createObject(manager.client);
-    const task = await taskInStatus('in_progress');
-    const response = await requestWhileHolding(
-      manager.id,
-      (query) =>
-        query('update public.tasks set object_id = $2 where id = $1', [task.id, target.id]),
-      () => deleteObject(otherManager, target.id),
-    );
-    assert.equal(response.error, null, JSON.stringify(response.error));
-    assert.equal(await liveTasksIn(target.id), 0);
-    assert.equal((await readTask(task.id)).deleted_by, otherManager.id);
   });
 
   test('два удаления одного объекта: прошло одно, отметка от него', async () => {

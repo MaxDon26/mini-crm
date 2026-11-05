@@ -81,9 +81,12 @@ async function createUsers(status: Record<string, string>): Promise<Record<strin
   try {
     for (const user of USERS) {
       const password = randomBytes(12).toString('hex');
-      const { data: list, error: listError } = await admin.auth.admin.listUsers({ perPage: 1000 });
-      if (listError) throw listError;
-      const existing = list.users.find((candidate) => candidate.email === user.email);
+      // Прямой запрос, а не список API администратора: тот отдаёт пользователей постранично, и после
+      // прогонов тестов нужного email на первой странице может не оказаться.
+      const found = await db.query<{ id: string }>('select id from auth.users where email = $1', [
+        user.email,
+      ]);
+      const existing = found.rows[0];
       // Повторный запуск не плодит пользователей: существующему задаётся новый пароль.
       const { data, error } = existing
         ? await admin.auth.admin.updateUserById(existing.id, { password })

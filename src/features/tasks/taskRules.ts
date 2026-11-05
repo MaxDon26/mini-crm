@@ -1,16 +1,10 @@
+// Относительный путь с расширением: модуль проверяет node:test, а там нет `@/`.
+import { normalizeText } from '../../shared/text.ts';
 import type { TaskStatus } from './statuses';
 import type { NewTask, TaskChanges, TaskFormValues, TaskListItem, TaskOption } from './types';
 
 export const UNASSIGNED_LABEL = 'не назначен';
 export const UNKNOWN_NAME = 'Неизвестно';
-
-// Тот же набор символов, что в функции базы private.has_text. Сверх `\s` база считает пробельными
-// ещё четыре символа: такой текст форма пропустила бы, а база отказала.
-const HAS_VISIBLE_CHARACTER = /[^\s\u0085\u180E\u200B\u2060]/;
-
-export function normalizeText(value: string): string {
-  return HAS_VISIBLE_CHARACTER.test(value) ? value.trim() : '';
-}
 
 export function formatPersonName(personId: string | null, name: string | null): string {
   if (personId === null) return UNASSIGNED_LABEL;
@@ -32,7 +26,7 @@ export function sortReviewFirst(tasks: TaskListItem[]): TaskListItem[] {
 
 /**
  * Текущее значение должно быть в списке, иначе поле выбора покажется пустым: исполнитель мог
- * сменить роль, а объект — выпасть из устаревшего списка.
+ * сменить роль.
  */
 export function withCurrentOption(options: TaskOption[], current: TaskOption | null): TaskOption[] {
   if (!current || options.some((option) => option.id === current.id)) return options;
@@ -58,6 +52,7 @@ export function buildNewTask(values: TaskFormValues & { objectId: string }): New
 }
 
 /**
+ * Объект задачи после создания не меняется (Р28), поэтому в правку не попадает.
  * Сравнение с тем, что человек видел при открытии формы, а не с текущей задачей: поля, которых он
  * не менял, не должны затереть правку другого постановщика.
  */
@@ -69,7 +64,6 @@ export function buildTaskChanges(initial: TaskFormValues, values: TaskFormValues
   if (description !== normalizeText(initial.description)) {
     changes.description = description || null;
   }
-  if (values.objectId && values.objectId !== initial.objectId) changes.object_id = values.objectId;
   if (values.assigneeId !== initial.assigneeId) changes.assignee_id = values.assigneeId;
   return changes;
 }

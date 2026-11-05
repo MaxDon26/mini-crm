@@ -55,4 +55,5 @@ export type NewTask = {
   assignee_id: string | null;
 };
 
-export type TaskChanges = Partial<NewTask>;
+// Объект задачи задаётся только при создании (Р28).
+export type TaskChanges = Partial<Omit<NewTask, 'object_id'>>;

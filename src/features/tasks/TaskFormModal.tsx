@@ -1,7 +1,8 @@
 import { Button, Group, Modal, Select, Stack, Textarea, TextInput } from '@mantine/core';
+import type { GetInputPropsReturnType } from '@mantine/form';
 import { ErrorState } from '@/shared/ui';
 import { useTaskForm } from './useTaskForm';
-import type { TaskFormParams } from './useTaskForm';
+import type { TaskFormParams, TaskObjectsSource } from './useTaskForm';
 import type { TaskOption } from './types';
 
 const TITLE_MAX_LENGTH = 200;
@@ -15,9 +16,40 @@ function toSelectData(options: TaskOption[]) {
   return options.map((option) => ({ value: option.id, label: option.name }));
 }
 
+type ObjectSelectProps = {
+  objects: TaskObjectsSource;
+  disabled: boolean;
+  inputProps: GetInputPropsReturnType;
+};
+
+/** Выбор объекта есть только при создании: потом объект задачи не меняется (Р28). */
+function ObjectSelect({ objects, disabled, inputProps }: ObjectSelectProps) {
+  return (
+    <>
+      {Boolean(objects.error) && (
+        <ErrorState
+          error={objects.error}
+          onRetry={() => void objects.refetch()}
+          retrying={objects.isFetching}
+          title="Не удалось загрузить объекты"
+        />
+      )}
+      <Select
+        label="Объект"
+        required
+        allowDeselect={false}
+        data={toSelectData(objects.data ?? [])}
+        placeholder={objects.isPending ? 'Загрузка…' : 'Выберите объект'}
+        disabled={disabled || objects.isPending}
+        {...inputProps}
+      />
+    </>
+  );
+}
+
 function TaskFormDialog(params: TaskFormParams) {
-  const { task, objects, onClose } = params;
-  const { form, submit, saving, executors, executorOptions, objectOptions, assigneeClearable } =
+  const { task, onClose } = params;
+  const { form, submit, saving, executors, executorOptions, assigneeClearable } =
     useTaskForm(params);
 
   return (
@@ -46,23 +78,13 @@ function TaskFormDialog(params: TaskFormParams) {
             disabled={saving}
             {...form.getInputProps('description')}
           />
-          {Boolean(objects.error) && (
-            <ErrorState
-              error={objects.error}
-              onRetry={() => void objects.refetch()}
-              retrying={objects.isFetching}
-              title="Не удалось загрузить объекты"
+          {params.task === undefined && (
+            <ObjectSelect
+              objects={params.objects}
+              disabled={saving}
+              inputProps={form.getInputProps('objectId')}
             />
           )}
-          <Select
-            label="Объект"
-            required
-            allowDeselect={false}
-            data={toSelectData(objectOptions)}
-            placeholder={objects.isPending ? 'Загрузка…' : 'Выберите объект'}
-            disabled={saving || objects.isPending}
-            {...form.getInputProps('objectId')}
-          />
           {executors.isError && (
             <ErrorState
               error={executors.error}

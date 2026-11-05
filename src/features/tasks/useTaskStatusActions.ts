@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useReadyUser } from '@/shared/currentUser';
 import { REFUSAL_MESSAGES } from '@/shared/dbErrors';
+import { normalizeText } from '@/shared/text';
 import { useChangeTaskStatus, useIsTaskBusy } from './hooks';
 import { getAvailableActions } from './statuses';
 import type { StatusTransition } from './statuses';
-import { normalizeText } from './taskRules';
 import type { TaskDetails } from './types';
 
 export type TaskActionsTask = Pick<TaskDetails, 'id' | 'status' | 'assigneeId'>;

@@ -29,7 +29,6 @@ let otherManager: TestUser;
 let executor: TestUser;
 let otherExecutor: TestUser;
 let object: ObjectRow;
-let otherObject: ObjectRow;
 
 before(async () => {
   [manager, otherManager, executor, otherExecutor] = await Promise.all([
@@ -38,10 +37,7 @@ before(async () => {
     createUser('executor'),
     createUser('executor'),
   ]);
-  [object, otherObject] = await Promise.all([
-    createObject(manager.client),
-    createObject(manager.client),
-  ]);
+  object = await createObject(manager.client);
 });
 
 async function taskInStatus(status: TaskStatus): Promise<TaskRow> {
@@ -171,13 +167,11 @@ describe('Роль проверяется первой и ответ один: �
   });
 
   test('триггер правки отвечает исполнителю одинаково, что бы ни было с задачей и целью', async () => {
-    const deleted = await createDeletedObject();
     const accepted = await taskInStatus('accepted');
     const live = await taskInStatus('in_progress');
     const cases: [string, string, string, unknown][] = [
       ['название', live.id, 'title', 'Новое'],
       ['принятая задача', accepted.id, 'title', 'Новое'],
-      ['удалённый объект', live.id, 'object_id', deleted.id],
       ['снятие исполнителя', live.id, 'assignee_id', null],
       ['назначение постановщика', live.id, 'assignee_id', manager.id],
     ];
@@ -206,14 +200,13 @@ describe('Роль проверяется первой и ответ один: �
 });
 
 describe('Сценарий 9: правка принятой задачи', () => {
-  test('каждое из четырёх полей: отказ, задача и история не меняются', async () => {
+  test('каждое из трёх полей: отказ, задача и история не меняются', async () => {
     const task = await taskInStatus('accepted');
     const historyBefore = await historyCount(task.id);
     const before = await readTask(task.id);
     for (const fields of [
       { title: 'Новое название' },
       { description: 'Новое описание' },
-      { object_id: otherObject.id },
       { assignee_id: otherExecutor.id },
     ]) {
       const response = await manager.client.from('tasks').update(fields).eq('id', task.id);
@@ -273,14 +266,13 @@ describe('Сценарий 9: правка принятой задачи', () =>
   });
 
   for (const status of ['new', 'in_progress', 'in_review', 'rework'] as const) {
-    test(`статус ${status}: четыре поля правятся, статус не меняется (Р8)`, async () => {
+    test(`статус ${status}: три поля правятся, статус и объект не меняются (Р8)`, async () => {
       const task = await taskInStatus(status);
       const response = await manager.client
         .from('tasks')
         .update({
           title: 'Новое название',
           description: 'Новое описание',
-          object_id: otherObject.id,
           assignee_id: otherExecutor.id,
         })
         .eq('id', task.id)
@@ -289,7 +281,7 @@ describe('Сценарий 9: правка принятой задачи', () =>
       assert.equal(response.error, null, JSON.stringify(response.error));
       assert.equal(response.data?.title, 'Новое название');
       assert.equal(response.data?.description, 'Новое описание');
-      assert.equal(response.data?.object_id, otherObject.id);
+      assert.equal(response.data?.object_id, object.id);
       assert.equal(response.data?.assignee_id, otherExecutor.id);
       assert.equal(response.data?.status, status);
     });
@@ -400,32 +392,26 @@ describe('Сценарий 15: удалённые объекты и задачи
     assert.equal(await countTasksTitled(title), 0);
   });
 
-  test('перенести задачу в удалённый и несуществующий объект нельзя', async () => {
-    const deleted = await createDeletedObject();
-    const task = await taskInStatus('in_progress');
-    for (const objectId of [deleted.id, randomUUID()]) {
-      assertRefusal(
-        await manager.client.from('tasks').update({ object_id: objectId }).eq('id', task.id),
-        'object_not_found',
-      );
-    }
-    assert.equal((await readTask(task.id)).object_id, object.id);
-  });
-
-  test('перенос в живой объект работает, исполнитель сразу видит новый объект вместо старого', async () => {
+  test('перенести задачу нельзя ни в живой, ни в удалённый, ни в несуществующий объект (Р28)', async () => {
     const assignee = await createUser('executor');
     const from = await createObject(manager.client);
-    const to = await createObject(manager.client);
+    const live = await createObject(manager.client);
+    const deleted = await createDeletedObject();
     const task = await createTask(manager.client, { object_id: from.id, assignee_id: assignee.id });
-    const moved = await manager.client
-      .from('tasks')
-      .update({ object_id: to.id })
-      .eq('id', task.id)
-      .select()
-      .single();
-    assert.equal(moved.error, null, JSON.stringify(moved.error));
+    await setTaskState(task.id, { status: 'in_progress' });
+    const before = await readTask(task.id);
+    const historyBefore = await historyCount(task.id);
+    for (const objectId of [live.id, deleted.id, randomUUID()]) {
+      const response = await manager.client
+        .from('tasks')
+        .update({ object_id: objectId })
+        .eq('id', task.id);
+      assert.equal(response.error?.code, PG_PERMISSION_DENIED, JSON.stringify(response));
+    }
+    assert.deepEqual(await readTask(task.id), before);
+    assert.equal(await historyCount(task.id), historyBefore);
     const visible = await assignee.client.from('objects').select('id');
-    assert.deepEqual(visible.data, [{ id: to.id }]);
+    assert.deepEqual(visible.data, [{ id: from.id }]);
   });
 
   test('правка удалённой задачи не находит строку, данные и история не меняются', async () => {
@@ -436,7 +422,6 @@ describe('Сценарий 15: удалённые объекты и задачи
     for (const fields of [
       { title: 'Новое' },
       { description: 'Новое' },
-      { object_id: otherObject.id },
       { assignee_id: otherExecutor.id },
     ]) {
       const response = await manager.client.from('tasks').update(fields).eq('id', task.id).select();
@@ -478,26 +463,6 @@ describe('Сценарий 15: удалённые объекты и задачи
     assertRefusal(response, 'object_not_found');
     assert.equal(await countTasksTitled(title), 0);
   });
-
-  test('перенос ждёт незавершённое удаление объекта и получает отказ', async () => {
-    const target = await createObject(manager.client);
-    const task = await taskInStatus('in_progress');
-    const response = await inTransaction(async (query) => {
-      await query('update public.objects set deleted_at = now(), deleted_by = $2 where id = $1', [
-        target.id,
-        manager.id,
-      ]);
-      const pending = manager.client
-        .from('tasks')
-        .update({ object_id: target.id })
-        .eq('id', task.id)
-        .then((result) => result);
-      await new Promise((resolve) => setTimeout(resolve, 400));
-      return { pending };
-    }).then(({ pending }) => pending);
-    assertRefusal(response, 'object_not_found');
-    assert.equal((await readTask(task.id)).object_id, object.id);
-  });
 });
 
 describe('Сценарий 17: обязательные значения при правке и создании', () => {
@@ -536,7 +501,8 @@ describe('Сценарий 17: обязательные значения при 
       .from('tasks')
       .update({ object_id: null as never })
       .eq('id', task.id);
-    assert.equal(update.error?.code, PG_NOT_NULL_VIOLATION);
+    // Правка объекта закрыта правом раньше обязательности колонки (Р28).
+    assert.equal(update.error?.code, PG_PERMISSION_DENIED);
     const insert = await manager.client
       .from('tasks')
       .insert({ title: 'Без объекта', object_id: null as never });
