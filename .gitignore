@@ -27,3 +27,4 @@ supabase/.temp/
 # Локальные настройки Claude Code
 .mcp.json
 .claude/
+.vercel/
