@@ -23,3 +23,7 @@ supabase/.temp/
 # Прочее
 *.log
 .DS_Store
+
+# Локальные настройки Claude Code
+.mcp.json
+.claude/
