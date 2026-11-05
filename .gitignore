@@ -28,3 +28,4 @@ supabase/.temp/
 .mcp.json
 .claude/
 .vercel/
+*.local.md
