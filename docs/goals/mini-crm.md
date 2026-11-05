@@ -373,13 +373,14 @@ tests/                  db (защита через API), unit (логика с�
 |---|---|---|
 | `shared/supabaseClient.ts` | `supabase` с типами схемы | З6 |
 | `shared/currentUser.tsx` | `CurrentUserProvider`, `useCurrentUser`: состояние `loading` (со сбоем чтения профиля в `error` и `retry`), `anonymous`, `no_profile` или `ready` и `{ id, fullName, role }`; `useReadyUser` для экранов за проверкой входа; `ROLE_LABELS` | З6 |
+| `shared/fetchAllRows.ts` | Постраничное чтение: API отдаёт не больше 1000 строк | З8, З9 |
 | `shared/queryKeys.ts` | Единые ключи запросов, чтобы разделы обновляли данные друг друга без импорта | З6 |
 | `shared/ui` | `QueryBoundary` (скелетон, ошибка с «Повторить», пустой список), `ListSkeleton`, `CardSkeleton`, `FetchingIndicator`, `ConfirmModal` (`loading`, `confirmDisabled`), `ErrorState`, `notifyError` | З6 |
 | `shared/dbErrors.ts` | `getErrorCode(error)`, `toUserMessage(error)`. Без импортов через `@/`, чтобы работать в `node:test` | З7 |
 | `features/tasks/statuses.ts` | `TaskStatus`, `STATUS_LABELS`, `TRANSITIONS`, `getAvailableActions({ status, role, isAssignee })`. Без импортов через `@/` | З7 |
 | `features/auth` | `signIn`, `signOut`, `LoginForm` | З6 |
 | `features/objects` | `useObjects`, `useObject`, `useDeleteObject` (даёт `{ request(object), modal, isPending }`: окно с числом задач уже внутри), `ObjectsTable`, `ObjectInfo`, `ObjectFormModal` | З8 |
-| `features/tasks` | `useObjectTasks`, `useMyTasks`, `useTask`, `useTaskHistory`, `useChangeTaskStatus`, `useDeleteTask`, `TaskList`, `TaskActions`, `TaskHistory`, `TaskFormModal` | З9 |
+| `features/tasks` | `useObjectTasks`, `useMyTasks`, `useTask`, `useTaskHistory`, `useChangeTaskStatus`, `useDeleteTask`, `TaskList`, `TaskInfo`, `TaskActions`, `TaskManagement`, `TaskHistory`, `TaskFormModal` | З9 |
 
 `TaskFormModal` получает список объектов параметром от экрана, поэтому разделы не импортируют друг друга.
 
@@ -471,9 +472,9 @@ Supabase понадобится только в одном случае: есл�
 | З6 | Каркас сайта | Блокирующая | З2 | З8, З9 | Агент | Типы, ESLint, вход | Готово |
 | З7 | Логика кнопок и текстов ошибок | Блокирующая | З2 | З9, З10 | Агент | 28 | Готово |
 | З8 | Сайт: объекты | Блокирующая | З5, З6 | З11 | Агент | Типы, ESLint, снимки | Готово |
-| З9 | Сайт: задачи | Блокирующая | З5, З6, З7 | З11 | Агент | Типы, ESLint, снимки | — |
+| З9 | Сайт: задачи | Блокирующая | З5, З6, З7 | З11 | Агент | Типы, ESLint, снимки | Готово |
 | З10 | Сверка кнопок с базой | Неблокирующая | З5, З7 | — | Агент | 20 полностью | Готово |
-| З11 | Сайт: карточка объекта | Блокирующая | З8, З9 | З13, З14 | Агент | Типы, ESLint, снимки | — |
+| З11 | Сайт: карточка объекта | Блокирующая | З8, З9 | З13, З14 | Агент | Типы, ESLint, снимки | Готово |
 | З12 | Скрипт тестовых данных | Блокирующая | З5 | З13 | Агент | Прогон локально | Готово |
 | З13 | Выкладка | Блокирующая | З11, З12 | З15 | Основная сессия и владелец | 32, 33 | — |
 | З14 | Сквозной сценарий в браузере | Неблокирующая, можно урезать | З11 | — | Агент | 29, 30, 31 | — |

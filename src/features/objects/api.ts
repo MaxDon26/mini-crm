@@ -1,5 +1,5 @@
-import type { PostgrestError } from '@supabase/supabase-js';
 import type { Database } from '@/shared/database.types';
+import { fetchAllRows } from '@/shared/fetchAllRows';
 import { supabase } from '@/shared/supabaseClient';
 
 type ObjectRow = Database['public']['Tables']['objects']['Row'];
@@ -9,22 +9,6 @@ export type ObjectFields = Pick<ObjectRow, 'name' | 'address'>;
 export type ObjectListItem = ObjectItem & { inReviewCount?: number };
 
 const OBJECT_COLUMNS = 'id, name, address, created_at';
-const PAGE_SIZE = 1000; // Предел API: `max_rows` в supabase/config.toml.
-
-type PageResponse<Row> = { data: Row[] | null; error: PostgrestError | null };
-
-/** API молча обрезает ответ до 1000 строк, поэтому без постраничного чтения список и счётчик занижаются. */
-async function fetchAllRows<Row>(
-  fetchPage: (from: number, to: number) => PromiseLike<PageResponse<Row>>,
-): Promise<Row[]> {
-  const rows: Row[] = [];
-  for (;;) {
-    const { data, error } = await fetchPage(rows.length, rows.length + PAGE_SIZE - 1);
-    if (error) throw error;
-    rows.push(...(data ?? []));
-    if (!data || data.length < PAGE_SIZE) return rows;
-  }
-}
 
 export function fetchObjects(): Promise<ObjectItem[]> {
   // `id` в сортировке нужен для постраничного чтения: у одинаковых названий порядок иначе не задан.
